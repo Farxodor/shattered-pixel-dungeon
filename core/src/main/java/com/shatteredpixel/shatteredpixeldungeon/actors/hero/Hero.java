@@ -77,6 +77,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEvasion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfForce;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfFuror;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfHaste;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfMight;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
@@ -186,6 +187,16 @@ public class Hero extends Char {
 		STR += RingOfMight.getBonus(this, RingOfMight.Might.class);
 
 		return weakened ? STR - 2 : STR;
+	}
+
+	public int wandPower() {
+		int pwr = RingOfMagic.getBonus(this, RingOfMagic.Magic.class);
+		if(this.heroClass == HeroClass.MAGE) {
+			//Mages get their bonus str as wand power (not including buffs)
+			pwr += this.STR - STARTING_STR;
+
+		}
+		return  pwr;
 	}
 
 	private static final String ATTACK		= "attackSkill";
@@ -389,10 +400,8 @@ public class Hero extends Char {
 		if (STR() < ((Weapon)belongings.weapon).STRReq())
 			return false;
 
-		if (belongings.weapon instanceof Flail && rangedWeapon == null)
-			return false;
+		return !(belongings.weapon instanceof Flail && rangedWeapon == null);
 
-		return true;
 	}
 
 	public boolean canAttack(Char enemy){
@@ -1243,7 +1252,7 @@ public class Hero extends Char {
 	}
 	
 	public boolean isStarving() {
-		return buff(Hunger.class) != null && ((Hunger)buff( Hunger.class )).isStarving();
+		return buff(Hunger.class) != null && buff( Hunger.class ).isStarving();
 	}
 	
 	@Override
@@ -1614,7 +1623,7 @@ public class Hero extends Char {
 			super.next();
 	}
 
-	public static interface Doom {
-		public void onDeath();
+	public interface Doom {
+		void onDeath();
 	}
 }

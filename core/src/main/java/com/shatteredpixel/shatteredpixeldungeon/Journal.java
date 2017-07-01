@@ -45,9 +45,9 @@ public class Journal {
 		public String desc() {
 			return Messages.get(this, name());
 		}
-	};
-	
-	public static class Record implements Comparable<Record>, Bundlable {
+	}
+
+    public static class Record implements Comparable<Record>, Bundlable {
 		
 		private static final String FEATURE	= "feature";
 		private static final String DEPTH	= "depth";

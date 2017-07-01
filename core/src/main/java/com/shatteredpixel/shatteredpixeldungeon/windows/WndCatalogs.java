@@ -99,15 +99,15 @@ public class WndCatalogs extends WndTabbed {
 					super.select( value );
 					WndCatalogs.showPotions = value;
 					updateList();
-				};
-			},
+				}
+            },
 			new LabeledTab( Messages.get(this, "scrolls") ) {
 				protected void select( boolean value ) {
 					super.select( value );
 					WndCatalogs.showPotions = !value;
 					updateList();
-				};
-			}
+				}
+            }
 		};
 		for (Tab tab : tabs) {
 			add( tab );

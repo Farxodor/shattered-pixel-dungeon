@@ -82,8 +82,7 @@ public class Toolbar extends Component {
 				return true;
 			}
 
-			;
-		});
+        });
 		
 		add(btnSearch = new Tool(44, 0, 20, 26) {
 			@Override
@@ -127,25 +126,20 @@ public class Toolbar extends Component {
 				return true;
 			}
 
-			;
-
-			@Override
+            @Override
 			protected void createChildren() {
 				super.createChildren();
 				gold = new GoldIndicator();
 				add(gold);
 			}
 
-			;
-
-			@Override
+            @Override
 			protected void layout() {
 				super.layout();
 				gold.fill(this);
 			}
 
-			;
-		});
+        });
 
 		add(pickedUp = new PickedUpItem());
 	}

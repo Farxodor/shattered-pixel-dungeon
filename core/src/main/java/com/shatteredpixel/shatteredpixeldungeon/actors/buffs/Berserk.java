@@ -34,8 +34,8 @@ import com.watabou.utils.Bundle;
 public class Berserk extends Buff {
 
 	private enum State{
-		NORMAL, BERSERK, EXHAUSTED, RECOVERING;
-	}
+		NORMAL, BERSERK, EXHAUSTED, RECOVERING
+    }
 	private State state = State.NORMAL;
 
 	private static final int EXHAUSTION_START = 40;

@@ -128,9 +128,9 @@ public class Potion extends Item {
 		super.reset();
 		image = handler.image( this );
 		color = handler.label( this );
-	};
-	
-	@Override
+	}
+
+    @Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_DRINK );
@@ -158,8 +158,8 @@ public class Potion extends Item {
 								if (index == 0) {
 									drink( hero );
 								}
-							};
-						}
+							}
+                        }
 					);
 					
 				} else {
@@ -189,8 +189,8 @@ public class Potion extends Item {
 						if (index == 0) {
 							Potion.super.doThrow( hero );
 						}
-					};
-				}
+					}
+                }
 			);
 			
 		} else {

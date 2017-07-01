@@ -110,7 +110,7 @@ public abstract class Wand extends Item {
 		if (super.collect( container )) {
 			if (container.owner != null) {
 				if (container instanceof WandHolster)
-					charge( container.owner, ((WandHolster) container).HOLSTER_SCALE_FACTOR );
+					charge( container.owner, WandHolster.HOLSTER_SCALE_FACTOR);
 				else
 					charge( container.owner );
 			}
@@ -180,8 +180,8 @@ public abstract class Wand extends Item {
 
 	public String statsDesc(){
 		return Messages.get(this, "stats_desc");
-	};
-	
+	}
+
 	@Override
 	public boolean isIdentified() {
 		return super.isIdentified() && curChargeKnown;

@@ -101,9 +101,9 @@ public class Terrain {
 		flags[BOOKSHELF]	= flags[BARRICADE];
 		flags[ALCHEMY]		= PASSABLE;
 
-	};
+	}
 
-	public static int discover( int terr ) {
+    public static int discover( int terr ) {
 		switch (terr) {
 		case SECRET_DOOR:
 			return DOOR;

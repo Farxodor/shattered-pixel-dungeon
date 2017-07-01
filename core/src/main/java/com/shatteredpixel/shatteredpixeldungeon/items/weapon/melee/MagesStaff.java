@@ -57,7 +57,7 @@ public class MagesStaff extends MeleeWeapon {
 	public static final String AC_IMBUE = "IMBUE";
 	public static final String AC_ZAP	= "ZAP";
 
-	private static final float STAFF_SCALE_FACTOR = 0.75f;
+	private static final float STAFF_SCALE_FACTOR = 0.70f;
 
 	{
 		image = ItemSpriteSheet.MAGES_STAFF;

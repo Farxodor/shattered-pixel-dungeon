@@ -174,13 +174,13 @@ public class PrisonBossLevel extends Level {
 		if (ch == Dungeon.hero){
 			//hero enters tengu's chamber
 			if (state == State.START
-					&& ((Room)new Room().set(2, 25, 8, 32)).inside(cellToPoint(cell))){
+					&& new Room().set(2, 25, 8, 32).inside(cellToPoint(cell))){
 				progress();
 			}
 
 			//hero finishes the maze
 			else if (state == State.MAZE
-					&& ((Room)new Room().set(4, 0, 7, 4)).inside(cellToPoint(cell))){
+					&& new Room().set(4, 0, 7, 4).inside(cellToPoint(cell))){
 				progress();
 			}
 		}

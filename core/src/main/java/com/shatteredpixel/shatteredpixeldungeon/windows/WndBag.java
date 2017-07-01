@@ -60,7 +60,7 @@ import com.watabou.noosa.audio.Sample;
 
 public class WndBag extends WndTabbed {
 	
-	public static enum Mode {
+	public enum Mode {
 		ALL,
 		UNIDENTIFED,
 		UNIDED_OR_CURSED,
@@ -407,13 +407,13 @@ public class WndBag extends WndTabbed {
 		protected void onTouchDown() {
 			bg.brightness( 1.5f );
 			Sample.INSTANCE.play( Assets.SND_CLICK, 0.7f, 0.7f, 1.2f );
-		};
-		
-		protected void onTouchUp() {
+		}
+
+        protected void onTouchUp() {
 			bg.brightness( 1.0f );
-		};
-		
-		@Override
+		}
+
+        @Override
 		protected void onClick() {
 			if (!lastBag.contains(item) && !item.isEquipped(Dungeon.hero)){
 

@@ -84,10 +84,10 @@ public class Food extends Item {
 				}
 				break;
 			case MAGE:
-				//1 charge
+				/*//1 charge
 				Buff.affect( hero, Recharging.class, 4f );
 				ScrollOfRecharging.charge( hero );
-				break;
+				break;*/
 			case ROGUE:
 			case HUNTRESS:
 				break;

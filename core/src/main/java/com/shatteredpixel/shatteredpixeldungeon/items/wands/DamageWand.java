@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Random;
 
@@ -41,18 +44,18 @@ public abstract class DamageWand extends Wand{
 	public abstract int max(int lvl);
 
 	public int damageRoll(){
-		return Random.NormalIntRange(min(), max());
+		return Random.NormalIntRange(min(), max() + Dungeon.hero.wandPower()) ;
 	}
 
 	public int damageRoll(int lvl){
-		return Random.NormalIntRange(min(lvl), max(lvl));
+		return Random.NormalIntRange(min(lvl), max(lvl) + Dungeon.hero.wandPower()) ;
 	}
 
 	@Override
 	public String statsDesc() {
 		if (levelKnown)
-			return Messages.get(this, "stats_desc", min(), max());
+			return Messages.get(this, "stats_desc", min(), max() + Dungeon.hero.wandPower());
 		else
-			return Messages.get(this, "stats_desc", min(0), max(0));
+			return Messages.get(this, "stats_desc", min(0), max(0) + Dungeon.hero.wandPower());
 	}
 }

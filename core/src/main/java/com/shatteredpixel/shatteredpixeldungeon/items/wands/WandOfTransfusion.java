@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -141,7 +142,7 @@ public class WandOfTransfusion extends Wand {
 		} else if (Dungeon.level.map[cell] == Terrain.GRASS) {
 
 			//regrow one grass tile, suuuuuper useful...
-			Dungeon.level.set(cell, Terrain.HIGH_GRASS);
+			Level.set(cell, Terrain.HIGH_GRASS);
 			GameScene.updateMap(cell);
 			CellEmitter.get( cell ).burst(LeafParticle.LEVEL_SPECIFIC, 4);
 
@@ -154,7 +155,7 @@ public class WandOfTransfusion extends Wand {
 				CellEmitter.get( cell ).burst(LeafParticle.LEVEL_SPECIFIC, 8);
 				GameScene.updateMap(cell);
 			} else{
-				Dungeon.level.set(cell, Terrain.HIGH_GRASS);
+				Level.set(cell, Terrain.HIGH_GRASS);
 				GameScene.updateMap(cell);
 				CellEmitter.get( cell ).burst(LeafParticle.LEVEL_SPECIFIC, 4);
 			}

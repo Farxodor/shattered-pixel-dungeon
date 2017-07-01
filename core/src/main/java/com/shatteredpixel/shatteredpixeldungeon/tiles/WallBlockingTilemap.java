@@ -136,11 +136,9 @@ public class WallBlockingTilemap extends Tilemap {
 	private boolean fogHidden(int cell){
 		if (cell < 0 || cell >= Dungeon.level.length()) return false;
 		if (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell]) return true;
-		if (wall(cell) && cell + mapWidth < Dungeon.level.length() && !wall(cell + mapWidth) &&
-				!Dungeon.level.visited[cell + mapWidth] && !Dungeon.level.mapped[cell + mapWidth])
-			return true;
-		return false;
-	}
+        return wall(cell) && cell + mapWidth < Dungeon.level.length() && !wall(cell + mapWidth) &&
+                !Dungeon.level.visited[cell + mapWidth] && !Dungeon.level.mapped[cell + mapWidth];
+    }
 
 	//for the purposes of wall stitching, tiles below the map count as walls
 	private boolean wall(int cell) {

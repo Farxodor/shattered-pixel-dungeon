@@ -116,9 +116,9 @@ public abstract class Scroll extends Item {
 		super.reset();
 		image = handler.image( this );
 		rune = handler.label( this );
-	};
-	
-	@Override
+	}
+
+    @Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_READ );

@@ -98,7 +98,7 @@ import java.util.HashSet;
 
 public abstract class Level implements Bundlable {
 	
-	public static enum Feeling {
+	public enum Feeling {
 		NONE,
 		CHASM,
 		WATER,
@@ -897,7 +897,7 @@ public abstract class Level implements Bundlable {
 			}
 		}
 		
-		if ((sighted && sense > 1) || !sighted) {
+		if (!sighted || sense > 1) {
 			
 			int ax = Math.max( 0, cx - sense );
 			int bx = Math.min( cx + sense, width() - 1 );

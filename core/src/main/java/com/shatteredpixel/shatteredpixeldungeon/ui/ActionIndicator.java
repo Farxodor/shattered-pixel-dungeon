@@ -111,9 +111,9 @@ public class ActionIndicator extends Tag {
 
 	public interface Action{
 
-		public Image getIcon();
+		Image getIcon();
 
-		public void doAction();
+		void doAction();
 
 	}
 
