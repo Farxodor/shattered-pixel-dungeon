@@ -45,7 +45,7 @@ public abstract class DamageWand extends Wand{
 	}
 
 	public int damageRoll(int lvl){
-		return Random.NormalIntRange(min(lvl), max(lvl) + Dungeon.hero.wandPower()) ;
+		return Random.NormalIntRange(min(lvl), max(lvl)) ;
 	}
 
 	@Override
