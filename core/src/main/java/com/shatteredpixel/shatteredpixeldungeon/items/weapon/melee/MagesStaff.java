@@ -77,8 +77,9 @@ public class MagesStaff extends MeleeWeapon {
 
 	@Override
 	public int max(int lvl) {
+		int battlemageBonus = Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE ? lvl * 2 : 0;
 		return  4*(tier+1) +    //8 base damage, down from 10
-				lvl*(tier+1);   //scaling unaffected
+				lvl*(tier+1) + battlemageBonus;   //scaling unaffected
 	}
 
 	public MagesStaff(Wand wand){

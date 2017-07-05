@@ -309,13 +309,13 @@ public class Ghost extends NPC {
 				float itemLevelRoll = Random.Float();
 				int itemLevel;
 				if (itemLevelRoll < 0.5f){
-					itemLevel = 0;
-				} else if (itemLevelRoll < 0.8f){
 					itemLevel = 1;
-				} else if (itemLevelRoll < 0.95f){
+				} else if (itemLevelRoll < 0.8f){
 					itemLevel = 2;
-				} else {
+				} else if (itemLevelRoll < 0.95f){
 					itemLevel = 3;
+				} else {
+					itemLevel = 4;
 				}
 				weapon.upgrade(itemLevel);
 				armor.upgrade(itemLevel);

@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
@@ -165,7 +166,7 @@ public class Generator {
 		ARMOR	( 60,	Armor.class ),
 		POTION	( 500,	Potion.class ),
 		SCROLL	( 400,	Scroll.class ),
-		WAND	( 40,	Wand.class ),
+		WAND	( Dungeon.hero.heroClass == HeroClass.MAGE ? 100 : 40,	Wand.class ),
 		RING	( 15,	Ring.class ),
 		ARTIFACT( 15,   Artifact.class),
 		SEED	( 50,	Plant.Seed.class ),
