@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import java.util.ArrayList;
 
 public class Boomerang extends MissileWeapon {
+	private static final int SCALING_CAP = 6;
 
 	{
 		image = ItemSpriteSheet.BOOMERANG;
@@ -58,8 +59,12 @@ public class Boomerang extends MissileWeapon {
 
 	@Override
 	public int max(int lvl) {
+		int scalingLevels = Math.min(SCALING_CAP, lvl);
+		int flatLevels = Math.max(0, lvl - SCALING_CAP);
+
 		return  5 +     //half the base damage of a tier-1 weapon
-				2 * lvl;//scales the same as a tier 1 weapon
+				(scalingLevels * (scalingLevels + 3) / 2) + //Each upgrade is stronger than the last (+2, +3, +4, ...)
+				(SCALING_CAP + 1) * flatLevels; //To a max of +7
 	}
 
 	@Override
