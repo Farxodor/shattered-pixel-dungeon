@@ -53,221 +53,222 @@ import com.watabou.utils.Random;
 import java.util.HashSet;
 
 public class Tengu extends Mob {
-	
-	{
-		spriteClass = TenguSprite.class;
-		
-		HP = HT = 120;
-		EXP = 20;
-		defenseSkill = 20;
 
-		HUNTING = new Hunting();
+    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
 
-		flying = true; //doesn't literally fly, but he is fleet-of-foot enough to avoid hazards
+    static {
+        RESISTANCES.add(ToxicGas.class);
+        RESISTANCES.add(Poison.class);
+        RESISTANCES.add(Grim.class);
+        RESISTANCES.add(ScrollOfPsionicBlast.class);
+    }
 
-		properties.add(Property.BOSS);
-	}
-	
-	@Override
-	protected void onAdd() {
-		//when he's removed and re-added to the fight, his time is always set to now.
-		spend(-cooldown());
-		super.onAdd();
-	}
+    {
+        spriteClass = TenguSprite.class;
 
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( 6, 20 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 20;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 5);
-	}
+        HP = HT = 120;
+        EXP = 20;
+        defenseSkill = 20;
 
-	@Override
-	public void damage(int dmg, Object src) {
+        HUNTING = new Hunting();
 
-		int beforeHitHP = HP;
-		super.damage(dmg, src);
-		dmg = beforeHitHP - HP;
+        flying = true; //doesn't literally fly, but he is fleet-of-foot enough to avoid hazards
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null) {
-			int multiple = beforeHitHP > HT/2 ? 1 : 4;
-			lock.addTime(dmg*multiple);
-		}
+        properties.add(Property.BOSS);
+    }
 
-		//phase 2 of the fight is over
-		if (HP == 0 && beforeHitHP <= HT/2) {
-			((PrisonBossLevel)Dungeon.level).progress();
-			return;
-		}
+    @Override
+    protected void onAdd() {
+        //when he's removed and re-added to the fight, his time is always set to now.
+        spend(-cooldown());
+        super.onAdd();
+    }
 
-		int hpBracket = beforeHitHP > HT/2 ? 12 : 20;
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(6, 20);
+    }
 
-		//phase 1 of the fight is over
-		if (beforeHitHP > HT/2 && HP <= HT/2){
-			HP = (HT/2)-1;
-			yell(Messages.get(this, "interesting"));
-			((PrisonBossLevel)Dungeon.level).progress();
-			BossHealthBar.bleed(true);
+    @Override
+    public int attackSkill(Char target) {
+        return 20;
+    }
 
-		//if tengu has lost a certain amount of hp, jump
-		} else if (beforeHitHP / hpBracket != HP / hpBracket) {
-			jump();
-		}
-	}
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 5);
+    }
 
-	@Override
-	public boolean isAlive() {
-		return Dungeon.level.mobs.contains(this); //Tengu has special death rules, see prisonbosslevel.progress()
-	}
+    @Override
+    public void damage(int dmg, Object src) {
 
-	@Override
-	public void die( Object cause ) {
-		if (Dungeon.hero.subClass == HeroSubClass.NONE && Dungeon.hero.belongings.getItem(TomeOfMastery.class) == null) {
-			Dungeon.level.drop( new TomeOfMastery(), pos ).sprite.drop();
-		}
-		
-		GameScene.bossSlain();
-		super.die( cause );
-		
-		Badges.validateBossSlain();
+        int beforeHitHP = HP;
+        super.damage(dmg, src);
+        dmg = beforeHitHP - HP;
 
-		LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
-		if (beacon != null) {
-			beacon.upgrade();
-		}
-		
-		yell( Messages.get(this, "defeated") );
-	}
+        LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+        if (lock != null) {
+            int multiple = beforeHitHP > HT / 2 ? 1 : 4;
+            lock.addTime(dmg * multiple);
+        }
 
-	@Override
-	protected boolean canAttack( Char enemy ) {
-		return new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
-	}
+        //phase 2 of the fight is over
+        if (HP == 0 && beforeHitHP <= HT / 2) {
+            ((PrisonBossLevel) Dungeon.level).progress();
+            return;
+        }
 
-	//tengu's attack is always visible
-	@Override
-	protected boolean doAttack(Char enemy) {
-		if (enemy == Dungeon.hero)
-			Dungeon.hero.resting = false;
-		sprite.attack( enemy.pos );
-		spend( attackDelay() );
-		return true;
-}
+        int hpBracket = beforeHitHP > HT / 2 ? 12 : 20;
 
-	private void jump() {
+        //phase 1 of the fight is over
+        if (beforeHitHP > HT / 2 && HP <= HT / 2) {
+            HP = (HT / 2) - 1;
+            yell(Messages.get(this, "interesting"));
+            ((PrisonBossLevel) Dungeon.level).progress();
+            BossHealthBar.bleed(true);
 
-		for (int i=0; i < 4; i++) {
-			int trapPos;
-			do {
-				trapPos = Random.Int( Dungeon.level.length() );
-			} while (!Level.fieldOfView[trapPos] || Level.solid[trapPos]);
-			
-			if (Dungeon.level.map[trapPos] == Terrain.INACTIVE_TRAP) {
-				Dungeon.level.setTrap( new SpearTrap().reveal(), trapPos );
-				Level.set( trapPos, Terrain.TRAP );
-				ScrollOfMagicMapping.discover( trapPos );
-			}
-		}
+            //if tengu has lost a certain amount of hp, jump
+        } else if (beforeHitHP / hpBracket != HP / hpBracket) {
+            jump();
+        }
+    }
 
-		if (enemy == null) enemy = chooseEnemy();
+    @Override
+    public boolean isAlive() {
+        return Dungeon.level.mobs.contains(this); //Tengu has special death rules, see prisonbosslevel.progress()
+    }
 
-		int newPos;
-		//if we're in phase 1, want to warp around within the room
-		if (HP > HT/2) {
-			do {
-				newPos = Random.Int(Dungeon.level.length());
-			} while (
-					!(Dungeon.level.map[newPos] == Terrain.INACTIVE_TRAP || Dungeon.level.map[newPos] == Terrain.TRAP)||
-							Level.solid[newPos] ||
-							Dungeon.level.adjacent(newPos, enemy.pos) ||
-							Actor.findChar(newPos) != null);
+    @Override
+    public void die(Object cause) {
+        if (Dungeon.hero.subClass == HeroSubClass.NONE && Dungeon.hero.belongings.getItem(TomeOfMastery.class) == null) {
+            Dungeon.level.drop(new TomeOfMastery(), pos).sprite.drop();
+        }
 
-		//otherwise go wherever, as long as it's a little bit away
-		} else {
-			do {
-				newPos = Random.Int(Dungeon.level.length());
-			} while (
-					Level.solid[newPos] ||
-					Dungeon.level.distance(newPos, enemy.pos) < 8 ||
-					Actor.findChar(newPos) != null);
-		}
-		
-		if (Dungeon.visible[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
+        GameScene.bossSlain();
+        super.die(cause);
+
+        Badges.validateBossSlain();
+
+        LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
+        if (beacon != null) {
+            beacon.upgrade();
+        }
+
+        yell(Messages.get(this, "defeated"));
+    }
+
+    @Override
+    protected boolean canAttack(Char enemy) {
+        return new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
+    }
+
+    //tengu's attack is always visible
+    @Override
+    protected boolean doAttack(Char enemy) {
+        if (enemy == Dungeon.hero)
+            Dungeon.hero.resting = false;
+        sprite.attack(enemy.pos);
+        spend(attackDelay());
+        return true;
+    }
+
+    private void jump() {
+
+        for (int i = 0; i < 4; i++) {
+            int trapPos;
+            do {
+                trapPos = Random.Int(Dungeon.level.length());
+            } while (!Level.fieldOfView[trapPos] || Level.solid[trapPos]);
+
+            if (Dungeon.level.map[trapPos] == Terrain.INACTIVE_TRAP) {
+                Dungeon.level.setTrap(new SpearTrap().reveal(), trapPos);
+                Level.set(trapPos, Terrain.TRAP);
+                ScrollOfMagicMapping.discover(trapPos);
+            }
+        }
+
+        if (enemy == null) enemy = chooseEnemy();
+
+        int newPos;
+        //if we're in phase 1, want to warp around within the room
+        if (HP > HT / 2) {
+            do {
+                newPos = Random.Int(Dungeon.level.length());
+            } while (
+                    !(Dungeon.level.map[newPos] == Terrain.INACTIVE_TRAP || Dungeon.level.map[newPos] == Terrain.TRAP) ||
+                            Level.solid[newPos] ||
+                            Dungeon.level.adjacent(newPos, enemy.pos) ||
+                            Actor.findChar(newPos) != null);
+
+            //otherwise go wherever, as long as it's a little bit away
+        } else {
+            do {
+                newPos = Random.Int(Dungeon.level.length());
+            } while (
+                    Level.solid[newPos] ||
+                            Dungeon.level.distance(newPos, enemy.pos) < 8 ||
+                            Actor.findChar(newPos) != null);
+        }
+
+        if (Dungeon.visible[pos]) CellEmitter.get(pos).burst(Speck.factory(Speck.WOOL), 6);
 
 
-		sprite.move( pos, newPos );
-		move( newPos );
-		
-		if (Dungeon.visible[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
-		Sample.INSTANCE.play( Assets.SND_PUFF );
-		
-		spend( 1 / speed() );
-	}
-	
-	@Override
-	public void notice() {
-		super.notice();
-		BossHealthBar.assignBoss(this);
-		if (HP <= HT/2) BossHealthBar.bleed(true);
-		if (HP == HT) {
-			yell(Messages.get(this, "notice_mine", Dungeon.hero.givenName()));
-		} else {
-			yell(Messages.get(this, "notice_face", Dungeon.hero.givenName()));
-		}
-	}
-	
-	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-	static {
-		RESISTANCES.add( ToxicGas.class );
-		RESISTANCES.add( Poison.class );
-		RESISTANCES.add( Grim.class );
-		RESISTANCES.add( ScrollOfPsionicBlast.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> resistances() {
-		return RESISTANCES;
-	}
+        sprite.move(pos, newPos);
+        move(newPos);
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		BossHealthBar.assignBoss(this);
-		if (HP <= HT/2) BossHealthBar.bleed(true);
-	}
+        if (Dungeon.visible[newPos]) CellEmitter.get(newPos).burst(Speck.factory(Speck.WOOL), 6);
+        Sample.INSTANCE.play(Assets.SND_PUFF);
 
-	//tengu is always hunting
-	private class Hunting extends Mob.Hunting{
+        spend(1 / speed());
+    }
 
-		@Override
-		public boolean act(boolean enemyInFOV, boolean justAlerted) {
-			enemySeen = enemyInFOV;
-			if (enemyInFOV && !isCharmedBy( enemy ) && canAttack( enemy )) {
+    @Override
+    public void notice() {
+        super.notice();
+        BossHealthBar.assignBoss(this);
+        if (HP <= HT / 2) BossHealthBar.bleed(true);
+        if (HP == HT) {
+            yell(Messages.get(this, "notice_mine", Dungeon.hero.givenName()));
+        } else {
+            yell(Messages.get(this, "notice_face", Dungeon.hero.givenName()));
+        }
+    }
 
-				return doAttack( enemy );
+    @Override
+    public HashSet<Class<?>> resistances() {
+        return RESISTANCES;
+    }
 
-			} else {
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        BossHealthBar.assignBoss(this);
+        if (HP <= HT / 2) BossHealthBar.bleed(true);
+    }
 
-				if (enemyInFOV) {
-					target = enemy.pos;
-				} else {
-					chooseEnemy();
-					target = enemy.pos;
-				}
+    //tengu is always hunting
+    private class Hunting extends Mob.Hunting {
 
-				spend( TICK );
-				return true;
+        @Override
+        public boolean act(boolean enemyInFOV, boolean justAlerted) {
+            enemySeen = enemyInFOV;
+            if (enemyInFOV && !isCharmedBy(enemy) && canAttack(enemy)) {
 
-			}
-		}
-	}
+                return doAttack(enemy);
+
+            } else {
+
+                if (enemyInFOV) {
+                    target = enemy.pos;
+                } else {
+                    chooseEnemy();
+                    target = enemy.pos;
+                }
+
+                spend(TICK);
+                return true;
+
+            }
+        }
+    }
 }

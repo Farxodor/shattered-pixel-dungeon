@@ -36,59 +36,57 @@ import java.util.ArrayList;
 
 public class Shocking extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing( 0xFFFFFF, 0.6f );
+    private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing(0xFFFFFF, 0.6f);
+    private ArrayList<Char> affected = new ArrayList<>();
+    private ArrayList<Lightning.Arc> arcs = new ArrayList<>();
 
-	@Override
-	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		// lvl 0 - 33%
-		// lvl 1 - 50%
-		// lvl 2 - 60%
-		int level = Math.max( 0, weapon.level() );
-		
-		if (Random.Int( level + 3 ) >= 2) {
-			
-			affected.clear();
-			affected.add(attacker);
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        // lvl 0 - 33%
+        // lvl 1 - 50%
+        // lvl 2 - 60%
+        int level = Math.max(0, weapon.level());
 
-			arcs.clear();
-			arcs.add(new Lightning.Arc(attacker.sprite.center(), defender.sprite.center()));
-			hit(defender, Random.Int(1, damage / 3));
+        if (Random.Int(level + 3) >= 2) {
 
-			attacker.sprite.parent.addToFront( new Lightning( arcs, null ) );
-			
-		}
+            affected.clear();
+            affected.add(attacker);
 
-		return damage;
+            arcs.clear();
+            arcs.add(new Lightning.Arc(attacker.sprite.center(), defender.sprite.center()));
+            hit(defender, Random.Int(1, damage / 3));
 
-	}
+            attacker.sprite.parent.addToFront(new Lightning(arcs, null));
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return WHITE;
-	}
+        }
 
-	private ArrayList<Char> affected = new ArrayList<>();
+        return damage;
 
-	private ArrayList<Lightning.Arc> arcs = new ArrayList<>();
-	
-	private void hit( Char ch, int damage ) {
-		
-		if (damage < 1) {
-			return;
-		}
-		
-		affected.add(ch);
-		ch.damage(Level.water[ch.pos] && !ch.flying ? damage * 2 : damage, LightningTrap.LIGHTNING);
-		
-		ch.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
-		ch.sprite.flash();
+    }
 
-		for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
-			Char n = Actor.findChar( ch.pos + PathFinder.NEIGHBOURS8[i] );
-			if (n != null && !affected.contains( n )) {
-				arcs.add(new Lightning.Arc(ch.sprite.center(), n.sprite.center()));
-				hit(n, Random.Int(damage / 2, damage));
-			}
-		}
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return WHITE;
+    }
+
+    private void hit(Char ch, int damage) {
+
+        if (damage < 1) {
+            return;
+        }
+
+        affected.add(ch);
+        ch.damage(Level.water[ch.pos] && !ch.flying ? damage * 2 : damage, LightningTrap.LIGHTNING);
+
+        ch.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
+        ch.sprite.flash();
+
+        for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+            Char n = Actor.findChar(ch.pos + PathFinder.NEIGHBOURS8[i]);
+            if (n != null && !affected.contains(n)) {
+                arcs.add(new Lightning.Arc(ch.sprite.center(), n.sprite.center()));
+                hit(n, Random.Int(damage / 2, damage));
+            }
+        }
+    }
 }

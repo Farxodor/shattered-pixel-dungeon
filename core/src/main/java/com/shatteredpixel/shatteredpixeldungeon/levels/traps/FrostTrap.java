@@ -36,30 +36,30 @@ import com.watabou.utils.Random;
 
 public class FrostTrap extends Trap {
 
-	{
-		color = WHITE;
-		shape = STARS;
-	}
+    {
+        color = WHITE;
+        shape = STARS;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		if (Dungeon.visible[ pos ]){
-			Splash.at( pos, 0xFFB2D6FF, 10);
-			Sample.INSTANCE.play( Assets.SND_SHATTER );
-		}
+        if (Dungeon.visible[pos]) {
+            Splash.at(pos, 0xFFB2D6FF, 10);
+            Sample.INSTANCE.play(Assets.SND_SHATTER);
+        }
 
-		Heap heap = Dungeon.level.heaps.get( pos );
-		if (heap != null) heap.freeze();
+        Heap heap = Dungeon.level.heaps.get(pos);
+        if (heap != null) heap.freeze();
 
-		Char ch = Actor.findChar(pos);
-		if (ch != null){
-			ch.damage(Random.NormalIntRange(1 , Dungeon.depth), this);
-			Chill.prolong(ch, Frost.class, 10f + Random.Int(Dungeon.depth));
-			if (!ch.isAlive() && ch == Dungeon.hero){
-				Dungeon.fail( getClass() );
-				GLog.n( Messages.get(this, "ondeath") );
-			}
-		}
-	}
+        Char ch = Actor.findChar(pos);
+        if (ch != null) {
+            ch.damage(Random.NormalIntRange(1, Dungeon.depth), this);
+            Chill.prolong(ch, Frost.class, 10f + Random.Int(Dungeon.depth));
+            if (!ch.isAlive() && ch == Dungeon.hero) {
+                Dungeon.fail(getClass());
+                GLog.n(Messages.get(this, "ondeath"));
+            }
+        }
+    }
 }

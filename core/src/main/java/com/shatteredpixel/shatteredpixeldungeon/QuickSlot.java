@@ -31,118 +31,115 @@ import java.util.Collection;
 
 public class QuickSlot {
 
-	/**
-	 * Slots contain objects which are also in a player's inventory. The one exception to this is when quantity is 0,
-	 * which can happen for a stackable item that has been 'used up', these are refered to a placeholders.
-	 */
+    /**
+     * Slots contain objects which are also in a player's inventory. The one exception to this is when quantity is 0,
+     * which can happen for a stackable item that has been 'used up', these are refered to a placeholders.
+     */
 
-	//note that the current max size is coded at 4, due to UI constraints, but it could be much much bigger with no issue.
-	public static int SIZE = 4;
-	private Item[] slots = new Item[SIZE];
+    //note that the current max size is coded at 4, due to UI constraints, but it could be much much bigger with no issue.
+    public static int SIZE = 4;
+    private final String PLACEHOLDERS = "placeholders";
+    private final String PLACEMENTS = "placements";
+    private Item[] slots = new Item[SIZE];
 
+    //direct array interaction methods, everything should build from these methods.
+    public void setSlot(int slot, Item item) {
+        clearItem(item); //we don't want to allow the same item in multiple slots.
+        slots[slot] = item;
+    }
 
-	//direct array interaction methods, everything should build from these methods.
-	public void setSlot(int slot, Item item){
-		clearItem(item); //we don't want to allow the same item in multiple slots.
-		slots[slot] = item;
-	}
+    public void clearSlot(int slot) {
+        slots[slot] = null;
+    }
 
-	public void clearSlot(int slot){
-		slots[slot] = null;
-	}
+    public void reset() {
+        slots = new Item[SIZE];
+    }
 
-	public void reset(){
-		slots = new Item[SIZE];
-	}
+    public Item getItem(int slot) {
+        return slots[slot];
+    }
 
-	public Item getItem(int slot){
-		return slots[slot];
-	}
+    //utility methods, for easier use of the internal array.
+    public int getSlot(Item item) {
+        for (int i = 0; i < SIZE; i++)
+            if (getItem(i) == item)
+                return i;
+        return -1;
+    }
 
+    public Boolean isPlaceholder(int slot) {
+        return getItem(slot) != null && getItem(slot).quantity() == 0;
+    }
 
-	//utility methods, for easier use of the internal array.
-	public int getSlot(Item item) {
-		for (int i = 0; i < SIZE; i++)
-			if (getItem(i) == item)
-				return i;
-		return -1;
-	}
+    public Boolean isNonePlaceholder(int slot) {
+        return getItem(slot) != null && getItem(slot).quantity() > 0;
+    }
 
-	public Boolean isPlaceholder(int slot){
-		return getItem(slot) != null && getItem(slot).quantity() == 0;
-	}
+    public void clearItem(Item item) {
+        if (contains(item))
+            clearSlot(getSlot(item));
+    }
 
-	public Boolean isNonePlaceholder(int slot){
-		return getItem(slot) != null && getItem(slot).quantity() > 0;
-	}
+    public boolean contains(Item item) {
+        return getSlot(item) != -1;
+    }
 
-	public void clearItem(Item item){
-		if (contains(item))
-			clearSlot(getSlot(item));
-	}
+    public void replaceSimilar(Item item) {
+        for (int i = 0; i < SIZE; i++)
+            if (getItem(i) != null && item.isSimilar(getItem(i)))
+                setSlot(i, item);
+    }
 
-	public boolean contains(Item item){
-		return getSlot(item) != -1;
-	}
+    public void convertToPlaceholder(Item item) {
+        Item placeholder = Item.virtual(item.getClass());
 
-	public void replaceSimilar(Item item){
-		for (int i = 0; i < SIZE; i++)
-			if (getItem(i) != null && item.isSimilar(getItem(i)))
-				setSlot( i , item );
-	}
+        if (placeholder != null && contains(item))
+            for (int i = 0; i < SIZE; i++)
+                if (getItem(i) == item)
+                    setSlot(i, placeholder);
+    }
 
-	public void convertToPlaceholder(Item item){
-		Item placeholder = Item.virtual(item.getClass());
+    public Item randomNonePlaceholder() {
 
-		if (placeholder != null && contains(item))
-			for (int i = 0; i < SIZE; i++)
-				if (getItem(i) == item)
-					setSlot( i , placeholder );
-	}
+        ArrayList<Item> result = new ArrayList<Item>();
+        for (int i = 0; i < SIZE; i++)
+            if (getItem(i) != null && !isPlaceholder(i))
+                result.add(getItem(i));
 
-	public Item randomNonePlaceholder(){
+        return Random.element(result);
+    }
 
-		ArrayList<Item> result = new ArrayList<Item>();
-		for (int i = 0; i < SIZE; i ++)
-		if (getItem(i) != null && !isPlaceholder(i))
-				result.add(getItem(i));
+    /**
+     * Placements array is used as order is preserved while bundling, but exact index is not, so if we
+     * bundle both the placeholders (which preserves their order) and an array telling us where the placeholders are,
+     * we can reconstruct them perfectly.
+     */
 
-		return Random.element(result);
-	}
+    public void storePlaceholders(Bundle bundle) {
+        ArrayList<Item> placeholders = new ArrayList<Item>(SIZE);
+        boolean[] placements = new boolean[SIZE];
 
-	private final String PLACEHOLDERS = "placeholders";
-	private final String PLACEMENTS = "placements";
+        for (int i = 0; i < SIZE; i++)
+            if (isPlaceholder(i)) {
+                placeholders.add(getItem(i));
+                placements[i] = true;
+            }
+        bundle.put(PLACEHOLDERS, placeholders);
+        bundle.put(PLACEMENTS, placements);
+    }
 
-	/**
-	 * Placements array is used as order is preserved while bundling, but exact index is not, so if we
-	 * bundle both the placeholders (which preserves their order) and an array telling us where the placeholders are,
-	 * we can reconstruct them perfectly.
-	 */
+    public void restorePlaceholders(Bundle bundle) {
+        Collection<Bundlable> placeholders = bundle.getCollection(PLACEHOLDERS);
+        boolean[] placements = bundle.getBooleanArray(PLACEMENTS);
 
-	public void storePlaceholders(Bundle bundle){
-		ArrayList<Item> placeholders = new ArrayList<Item>(SIZE);
-		boolean[] placements = new boolean[SIZE];
+        int i = 0;
+        for (Bundlable item : placeholders) {
+            while (!placements[i]) i++;
+            setSlot(i, (Item) item);
+            i++;
+        }
 
-		for (int i = 0; i < SIZE; i++)
-			if (isPlaceholder(i)) {
-				placeholders.add(getItem(i));
-				placements[i] = true;
-			}
-		bundle.put( PLACEHOLDERS, placeholders );
-		bundle.put( PLACEMENTS, placements );
-	}
-
-	public void restorePlaceholders(Bundle bundle){
-		Collection<Bundlable> placeholders = bundle.getCollection(PLACEHOLDERS);
-		boolean[] placements = bundle.getBooleanArray( PLACEMENTS );
-
-		int i = 0;
-		for (Bundlable item : placeholders){
-			while (!placements[i]) i++;
-			setSlot( i, (Item)item );
-			i++;
-		}
-
-	}
+    }
 
 }

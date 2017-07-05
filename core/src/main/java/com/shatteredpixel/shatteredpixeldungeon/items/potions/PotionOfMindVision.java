@@ -30,25 +30,25 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class PotionOfMindVision extends Potion {
 
-	{
-		initials = 7;
-	}
+    {
+        initials = 7;
+    }
 
-	@Override
-	public void apply( Hero hero ) {
-		setKnown();
-		Buff.affect( hero, MindVision.class, MindVision.DURATION );
-		Dungeon.observe();
-		
-		if (Dungeon.level.mobs.size() > 0) {
-			GLog.i( Messages.get(this, "see_mobs") );
-		} else {
-			GLog.i( Messages.get(this, "see_none") );
-		}
-	}
-	
-	@Override
-	public int price() {
-		return isKnown() ? 40 * quantity : super.price();
-	}
+    @Override
+    public void apply(Hero hero) {
+        setKnown();
+        Buff.affect(hero, MindVision.class, MindVision.DURATION);
+        Dungeon.observe();
+
+        if (Dungeon.level.mobs.size() > 0) {
+            GLog.i(Messages.get(this, "see_mobs"));
+        } else {
+            GLog.i(Messages.get(this, "see_none"));
+        }
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 40 * quantity : super.price();
+    }
 }

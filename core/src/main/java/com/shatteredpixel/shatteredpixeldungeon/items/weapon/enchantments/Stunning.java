@@ -31,28 +31,28 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite.Glowing;
 import com.watabou.utils.Random;
 
 public class Stunning extends Weapon.Enchantment {
-	
-	private static ItemSprite.Glowing YELLOW = new ItemSprite.Glowing( 0xCCAA44 );
-	
-	@Override
-	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		// lvl 0 - 13%
-		// lvl 1 - 22%
-		// lvl 2 - 30%
-		int level = Math.max( 0, weapon.level() );
-		
-		if (Random.Int( level + 8 ) >= 7) {
-			
-			Buff.prolong( defender, Paralysis.class, Random.Float( 1, 1.5f + level ) );
-			defender.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 12 );
 
-		}
+    private static ItemSprite.Glowing YELLOW = new ItemSprite.Glowing(0xCCAA44);
 
-		return damage;
-	}
-	
-	@Override
-	public Glowing glowing() {
-		return YELLOW;
-	}
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        // lvl 0 - 13%
+        // lvl 1 - 22%
+        // lvl 2 - 30%
+        int level = Math.max(0, weapon.level());
+
+        if (Random.Int(level + 8) >= 7) {
+
+            Buff.prolong(defender, Paralysis.class, Random.Float(1, 1.5f + level));
+            defender.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 12);
+
+        }
+
+        return damage;
+    }
+
+    @Override
+    public Glowing glowing() {
+        return YELLOW;
+    }
 }

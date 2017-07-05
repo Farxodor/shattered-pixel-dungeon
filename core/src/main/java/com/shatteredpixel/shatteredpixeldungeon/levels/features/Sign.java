@@ -34,29 +34,29 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.audio.Sample;
 
 public class Sign {
-	
-	public static void read( int pos ) {
-		
-		if (Dungeon.level instanceof DeadEndLevel) {
-			
-			GameScene.show( new WndMessage( Messages.get(Sign.class, "dead_end") ) );
-			
-		} else {
 
-			if (Dungeon.depth <= 21) {
-				GameScene.show( new WndMessage( Messages.get(Sign.class, "tip_"+Dungeon.depth) ) );
-			} else {
+    public static void read(int pos) {
 
-				Dungeon.level.destroy( pos );
-				GameScene.updateMap( pos );
-				GameScene.discoverTile( pos, Terrain.SIGN );
+        if (Dungeon.level instanceof DeadEndLevel) {
 
-				GLog.w( Messages.get(Sign.class, "burn") );
+            GameScene.show(new WndMessage(Messages.get(Sign.class, "dead_end")));
 
-				CellEmitter.get( pos ).burst( ElmoParticle.FACTORY, 6 );
-				Sample.INSTANCE.play( Assets.SND_BURNING );
-			}
+        } else {
 
-		}
-	}
+            if (Dungeon.depth <= 21) {
+                GameScene.show(new WndMessage(Messages.get(Sign.class, "tip_" + Dungeon.depth)));
+            } else {
+
+                Dungeon.level.destroy(pos);
+                GameScene.updateMap(pos);
+                GameScene.discoverTile(pos, Terrain.SIGN);
+
+                GLog.w(Messages.get(Sign.class, "burn"));
+
+                CellEmitter.get(pos).burst(ElmoParticle.FACTORY, 6);
+                Sample.INSTANCE.play(Assets.SND_BURNING);
+            }
+
+        }
+    }
 }

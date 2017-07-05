@@ -35,50 +35,50 @@ import com.watabou.utils.PathFinder;
 
 public class PitfallTrap extends Trap {
 
-	{
-		color = RED;
-		shape = DIAMOND;
-	}
+    {
+        color = RED;
+        shape = DIAMOND;
+    }
 
-	@Override
-	public void activate() {
-		Heap heap = Dungeon.level.heaps.get( pos );
+    @Override
+    public void activate() {
+        Heap heap = Dungeon.level.heaps.get(pos);
 
-		if (heap != null){
-			for (Item item : heap.items){
-				Dungeon.dropToChasm(item);
-			}
-			heap.sprite.kill();
-			GameScene.discard(heap);
-			Dungeon.level.heaps.remove( pos );
-		}
+        if (heap != null) {
+            for (Item item : heap.items) {
+                Dungeon.dropToChasm(item);
+            }
+            heap.sprite.kill();
+            GameScene.discard(heap);
+            Dungeon.level.heaps.remove(pos);
+        }
 
-		Char ch = Actor.findChar( pos );
+        Char ch = Actor.findChar(pos);
 
-		if (ch == Dungeon.hero){
-			Chasm.heroFall( pos );
-		} else if (ch != null){
-			Chasm.mobFall((Mob)ch);
-		}
-	}
+        if (ch == Dungeon.hero) {
+            Chasm.heroFall(pos);
+        } else if (ch != null) {
+            Chasm.mobFall((Mob) ch);
+        }
+    }
 
-	@Override
-	protected void disarm() {
-		super.disarm();
-		
-		int stateChanges = 0;
-		boolean curPassable = Level.passable[pos + PathFinder.CIRCLE8[PathFinder.CIRCLE8.length-1]];
-		for (int i : PathFinder.CIRCLE8){
-			if (curPassable != Level.passable[pos + i]){
-				stateChanges++;
-				curPassable = Level.passable[pos + i];
-			}
-		}
-		
-		//if making a pit here wouldn't block any paths, make a pit tile instead of a disarmed trap tile.
-		if (stateChanges <= 2){
-			Level.set(pos, Terrain.CHASM);
-			GameScene.updateMap( pos );
-		}
-	}
+    @Override
+    protected void disarm() {
+        super.disarm();
+
+        int stateChanges = 0;
+        boolean curPassable = Level.passable[pos + PathFinder.CIRCLE8[PathFinder.CIRCLE8.length - 1]];
+        for (int i : PathFinder.CIRCLE8) {
+            if (curPassable != Level.passable[pos + i]) {
+                stateChanges++;
+                curPassable = Level.passable[pos + i];
+            }
+        }
+
+        //if making a pit here wouldn't block any paths, make a pit tile instead of a disarmed trap tile.
+        if (stateChanges <= 2) {
+            Level.set(pos, Terrain.CHASM);
+            GameScene.updateMap(pos);
+        }
+    }
 }

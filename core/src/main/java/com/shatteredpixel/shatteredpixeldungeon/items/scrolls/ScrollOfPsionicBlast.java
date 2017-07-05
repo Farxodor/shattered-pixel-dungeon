@@ -37,43 +37,43 @@ import com.watabou.utils.Random;
 
 public class ScrollOfPsionicBlast extends Scroll {
 
-	{
-		initials = 5;
+    {
+        initials = 5;
 
-		bones = true;
-	}
-	
-	@Override
-	protected void doRead() {
-		
-		GameScene.flash( 0xFFFFFF );
-		
-		Sample.INSTANCE.play( Assets.SND_BLAST );
-		Invisibility.dispel();
-		
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			if (Level.fieldOfView[mob.pos]) {
-				mob.damage(mob.HT, this );
-			}
-		}
+        bones = true;
+    }
 
-		curUser.damage(Math.max(curUser.HT/5, curUser.HP/2), this);
-		Buff.prolong( curUser, Paralysis.class, Random.Int( 4, 6 ) );
-		Buff.prolong( curUser, Blindness.class, Random.Int( 6, 9 ) );
-		Dungeon.observe();
-		
-		setKnown();
+    @Override
+    protected void doRead() {
 
-		curUser.spendAndNext( TIME_TO_READ ); //no animation here, the flash interrupts it anyway.
+        GameScene.flash(0xFFFFFF);
 
-		if (!curUser.isAlive()) {
-			Dungeon.fail( getClass() );
-			GLog.n( Messages.get(this, "ondeath") );
-		}
-	}
-	
-	@Override
-	public int price() {
-		return isKnown() ? 50 * quantity : super.price();
-	}
+        Sample.INSTANCE.play(Assets.SND_BLAST);
+        Invisibility.dispel();
+
+        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+            if (Level.fieldOfView[mob.pos]) {
+                mob.damage(mob.HT, this);
+            }
+        }
+
+        curUser.damage(Math.max(curUser.HT / 5, curUser.HP / 2), this);
+        Buff.prolong(curUser, Paralysis.class, Random.Int(4, 6));
+        Buff.prolong(curUser, Blindness.class, Random.Int(6, 9));
+        Dungeon.observe();
+
+        setKnown();
+
+        curUser.spendAndNext(TIME_TO_READ); //no animation here, the flash interrupts it anyway.
+
+        if (!curUser.isAlive()) {
+            Dungeon.fail(getClass());
+            GLog.n(Messages.get(this, "ondeath"));
+        }
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 50 * quantity : super.price();
+    }
 }

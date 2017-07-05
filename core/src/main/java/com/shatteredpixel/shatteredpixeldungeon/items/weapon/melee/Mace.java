@@ -25,17 +25,17 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class Mace extends MeleeWeapon {
 
-	{
-		image = ItemSpriteSheet.MACE;
+    {
+        image = ItemSpriteSheet.MACE;
 
-		tier = 3;
-		ACC = 1.2f; //20% boost to accuracy
-	}
+        tier = 3;
+        ACC = 1.2f; //20% boost to accuracy
+    }
 
-	@Override
-	public int max(int lvl) {
-		return  4*(tier+1) +    //16 base, down from 20
-				lvl*(tier+1);   //scaling unchanged
-	}
+    @Override
+    public int max(int lvl) {
+        return 4 * (tier + 1) +    //16 base, down from 20
+                lvl * (tier + 1);   //scaling unchanged
+    }
 
 }

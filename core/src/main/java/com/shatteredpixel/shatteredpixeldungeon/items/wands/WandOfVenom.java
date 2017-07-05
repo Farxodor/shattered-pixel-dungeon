@@ -39,51 +39,51 @@ import com.watabou.utils.PathFinder;
 
 public class WandOfVenom extends Wand {
 
-	{
-		image = ItemSpriteSheet.WAND_VENOM;
+    {
+        image = ItemSpriteSheet.WAND_VENOM;
 
-		collisionProperties = Ballistica.STOP_TARGET | Ballistica.STOP_TERRAIN;
-	}
+        collisionProperties = Ballistica.STOP_TARGET | Ballistica.STOP_TERRAIN;
+    }
 
-	@Override
-	protected void onZap(Ballistica bolt) {
-		Blob venomGas = Blob.seed(bolt.collisionPos, 50 + 10 * level(), VenomGas.class);
-		((VenomGas)venomGas).setStrength(level()+1);
-		GameScene.add(venomGas);
+    @Override
+    protected void onZap(Ballistica bolt) {
+        Blob venomGas = Blob.seed(bolt.collisionPos, 50 + 10 * level(), VenomGas.class);
+        ((VenomGas) venomGas).setStrength(level() + 1);
+        GameScene.add(venomGas);
 
-		for (int i : PathFinder.NEIGHBOURS9) {
-			Char ch = Actor.findChar(bolt.collisionPos + i);
-			if (ch != null) {
-				processSoulMark(ch, chargesPerCast());
-			}
-		}
-	}
+        for (int i : PathFinder.NEIGHBOURS9) {
+            Char ch = Actor.findChar(bolt.collisionPos + i);
+            if (ch != null) {
+                processSoulMark(ch, chargesPerCast());
+            }
+        }
+    }
 
-	@Override
-	protected void fx(Ballistica bolt, Callback callback) {
-		MagicMissile.boltFromChar(
-				curUser.sprite.parent,
-				MagicMissile.POISON,
-				curUser.sprite,
-				bolt.collisionPos,
-				callback);
-		Sample.INSTANCE.play(Assets.SND_ZAP);
-	}
+    @Override
+    protected void fx(Ballistica bolt, Callback callback) {
+        MagicMissile.boltFromChar(
+                curUser.sprite.parent,
+                MagicMissile.POISON,
+                curUser.sprite,
+                bolt.collisionPos,
+                callback);
+        Sample.INSTANCE.play(Assets.SND_ZAP);
+    }
 
-	@Override
-	public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
-		//acts like venomous enchantment
-		new Venomous().proc(staff, attacker, defender, damage);
-	}
+    @Override
+    public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
+        //acts like venomous enchantment
+        new Venomous().proc(staff, attacker, defender, damage);
+    }
 
-	@Override
-	public void staffFx(MagesStaff.StaffParticle particle) {
-		particle.color( ColorMath.random( 0x8844FF, 0x00FF00) );
-		particle.am = 0.6f;
-		particle.setLifespan( 1f );
-		particle.acc.set(0, 20);
-		particle.setSize( 0.5f, 2f);
-		particle.shuffleXY( 1f );
-	}
+    @Override
+    public void staffFx(MagesStaff.StaffParticle particle) {
+        particle.color(ColorMath.random(0x8844FF, 0x00FF00));
+        particle.am = 0.6f;
+        particle.setLifespan(1f);
+        particle.acc.set(0, 20);
+        particle.setSize(0.5f, 2f);
+        particle.shuffleXY(1f);
+    }
 
 }

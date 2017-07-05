@@ -40,90 +40,90 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class Frost extends FlavourBuff {
 
-	private static final float DURATION	= 5f;
+    private static final float DURATION = 5f;
 
-	{
-		type = buffType.NEGATIVE;
-	}
-	
-	@Override
-	public boolean attachTo( Char target ) {
-		if (super.attachTo( target )) {
-			
-			target.paralysed++;
-			Buff.detach( target, Burning.class );
-			Buff.detach( target, Chill.class );
+    {
+        type = buffType.NEGATIVE;
+    }
 
-			if (target instanceof Hero) {
+    public static float duration(Char ch) {
+        Resistance r = ch.buff(Resistance.class);
+        return r != null ? r.durationFactor() * DURATION : DURATION;
+    }
 
-				Hero hero = (Hero)target;
-				Item item = hero.belongings.randomUnequipped();
-				if (item instanceof Potion
-						&& !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
+    @Override
+    public boolean attachTo(Char target) {
+        if (super.attachTo(target)) {
 
-					item = item.detach( hero.belongings.backpack );
-					GLog.w( Messages.get(this, "freezes", item.toString()) );
-					((Potion) item).shatter(hero.pos);
+            target.paralysed++;
+            Buff.detach(target, Burning.class);
+            Buff.detach(target, Chill.class);
 
-				} else if (item instanceof MysteryMeat) {
+            if (target instanceof Hero) {
 
-					item = item.detach( hero.belongings.backpack );
-					FrozenCarpaccio carpaccio = new FrozenCarpaccio();
-					if (!carpaccio.collect( hero.belongings.backpack )) {
-						Dungeon.level.drop( carpaccio, target.pos ).sprite.drop();
-					}
-					GLog.w( Messages.get(this, "freezes", item.toString()) );
+                Hero hero = (Hero) target;
+                Item item = hero.belongings.randomUnequipped();
+                if (item instanceof Potion
+                        && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
 
-				}
-			} else if (target instanceof Thief) {
+                    item = item.detach(hero.belongings.backpack);
+                    GLog.w(Messages.get(this, "freezes", item.toString()));
+                    ((Potion) item).shatter(hero.pos);
 
-				Item item = ((Thief) target).item;
+                } else if (item instanceof MysteryMeat) {
 
-				if (item instanceof Potion && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
-					((Potion) ((Thief) target).item).shatter(target.pos);
-					((Thief) target).item = null;
-				}
+                    item = item.detach(hero.belongings.backpack);
+                    FrozenCarpaccio carpaccio = new FrozenCarpaccio();
+                    if (!carpaccio.collect(hero.belongings.backpack)) {
+                        Dungeon.level.drop(carpaccio, target.pos).sprite.drop();
+                    }
+                    GLog.w(Messages.get(this, "freezes", item.toString()));
 
-			}
+                }
+            } else if (target instanceof Thief) {
 
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	@Override
-	public void detach() {
-		super.detach();
-		if (target.paralysed > 0)
-			target.paralysed--;
-		if (Level.water[target.pos])
-			Buff.prolong(target, Chill.class, 4f);
-	}
-	
-	@Override
-	public int icon() {
-		return BuffIndicator.FROST;
-	}
+                Item item = ((Thief) target).item;
 
-	@Override
-	public void fx(boolean on) {
-		if (on) target.sprite.add(CharSprite.State.FROZEN);
-		else target.sprite.remove(CharSprite.State.FROZEN);
-	}
+                if (item instanceof Potion && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
+                    ((Potion) ((Thief) target).item).shatter(target.pos);
+                    ((Thief) target).item = null;
+                }
 
-	@Override
-	public String toString() {
-		return Messages.get(this, "name");
-	}
+            }
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", dispTurns());
-	}
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	public static float duration( Char ch ) {
-		Resistance r = ch.buff( Resistance.class );
-		return r != null ? r.durationFactor() * DURATION : DURATION;
-	}
+    @Override
+    public void detach() {
+        super.detach();
+        if (target.paralysed > 0)
+            target.paralysed--;
+        if (Level.water[target.pos])
+            Buff.prolong(target, Chill.class, 4f);
+    }
+
+    @Override
+    public int icon() {
+        return BuffIndicator.FROST;
+    }
+
+    @Override
+    public void fx(boolean on) {
+        if (on) target.sprite.add(CharSprite.State.FROZEN);
+        else target.sprite.remove(CharSprite.State.FROZEN);
+    }
+
+    @Override
+    public String toString() {
+        return Messages.get(this, "name");
+    }
+
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc", dispTurns());
+    }
 }

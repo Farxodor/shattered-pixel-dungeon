@@ -28,15 +28,15 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class ConfusionTrap extends Trap {
 
-	{
-		color = TEAL;
-		shape = GRILL;
-	}
+    {
+        color = TEAL;
+        shape = GRILL;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		GameScene.add(Blob.seed(pos, 300 + 20 * Dungeon.depth, ConfusionGas.class));
+        GameScene.add(Blob.seed(pos, 300 + 20 * Dungeon.depth, ConfusionGas.class));
 
-	}
+    }
 }

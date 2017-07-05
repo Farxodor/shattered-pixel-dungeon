@@ -26,24 +26,24 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class IronKey extends Key {
-	
-	{
-		image = ItemSpriteSheet.IRON_KEY;
-	}
 
-	@Override
-	public boolean doPickUp(Hero hero) {
-		Dungeon.hero.belongings.ironKeys[depth] += quantity();
-		return super.doPickUp(hero);
-	}
+    {
+        image = ItemSpriteSheet.IRON_KEY;
+    }
 
-	public IronKey() {
-		this( 0 );
-	}
-	
-	public IronKey( int depth ) {
-		super();
-		this.depth = depth;
-	}
+    public IronKey() {
+        this(0);
+    }
+
+    public IronKey(int depth) {
+        super();
+        this.depth = depth;
+    }
+
+    @Override
+    public boolean doPickUp(Hero hero) {
+        Dungeon.hero.belongings.ironKeys[depth] += quantity();
+        return super.doPickUp(hero);
+    }
 
 }

@@ -25,10 +25,10 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class Shortsword extends MeleeWeapon {
 
-	{
-		image = ItemSpriteSheet.SHORTSWORD;
+    {
+        image = ItemSpriteSheet.SHORTSWORD;
 
-		tier = 2;
-	}
+        tier = 2;
+    }
 
 }

@@ -21,8 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
-import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.tweeners.PosTweener;
 import com.watabou.noosa.tweeners.Tweener;
@@ -31,95 +31,95 @@ import com.watabou.utils.PointF;
 
 public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
-	private static final float SPEED	= 240f;
-	
-	private Callback callback;
-	
-	public void reset( int from, int to, Item item, Callback listener ) {
-		revive();
-		int image;
+    private static final float SPEED = 240f;
 
-		if (item == null)   view(image = 0, null);
-		else                view(image = item.image(), item.glowing());
+    private Callback callback;
 
-		setup( DungeonTilemap.tileToWorld( from ),
-				DungeonTilemap.tileToWorld( to ),
-				image,
-				listener);
-	}
+    public void reset(int from, int to, Item item, Callback listener) {
+        revive();
+        int image;
 
-	public void reset( Visual from, Visual to, Item item, Callback listener ) {
-		revive();
-		int image;
+        if (item == null) view(image = 0, null);
+        else view(image = item.image(), item.glowing());
 
-		if (item == null)   view(image = 0, null);
-		else                view(image = item.image(), item.glowing());
+        setup(DungeonTilemap.tileToWorld(from),
+                DungeonTilemap.tileToWorld(to),
+                image,
+                listener);
+    }
 
-		setup( from.center(this),
-				to.center(this),
-				image,
-				listener);
-	}
+    public void reset(Visual from, Visual to, Item item, Callback listener) {
+        revive();
+        int image;
 
-	public void reset( Visual from, int to, Item item, Callback listener ) {
-		revive();
-		int image;
+        if (item == null) view(image = 0, null);
+        else view(image = item.image(), item.glowing());
 
-		if (item == null)   view(image = 0, null);
-		else                view(image = item.image(), item.glowing());
+        setup(from.center(this),
+                to.center(this),
+                image,
+                listener);
+    }
 
-		setup( from.center(this),
-				DungeonTilemap.tileToWorld( to ),
-				image,
-				listener);
-	}
+    public void reset(Visual from, int to, Item item, Callback listener) {
+        revive();
+        int image;
 
-	public void reset( PointF from, PointF to, Item item, Callback listener) {
-		revive();
-		int image;
+        if (item == null) view(image = 0, null);
+        else view(image = item.image(), item.glowing());
 
-		if (item == null)   view(image = 0, null);
-		else                view(image = item.image(), item.glowing());
+        setup(from.center(this),
+                DungeonTilemap.tileToWorld(to),
+                image,
+                listener);
+    }
 
-		setup( from,
-				to,
-				image,
-				listener );
-	}
+    public void reset(PointF from, PointF to, Item item, Callback listener) {
+        revive();
+        int image;
 
-	private void setup( PointF from, PointF to, int image, Callback listener ){
+        if (item == null) view(image = 0, null);
+        else view(image = item.image(), item.glowing());
 
-		originToCenter();
+        setup(from,
+                to,
+                image,
+                listener);
+    }
 
-		this.callback = listener;
+    private void setup(PointF from, PointF to, int image, Callback listener) {
 
-		point( from );
+        originToCenter();
 
-		PointF d = PointF.diff( to, from );
-		speed.set( d ).normalize().scale( SPEED );
+        this.callback = listener;
 
-		if (image == ItemSpriteSheet.DART || image == ItemSpriteSheet.INCENDIARY_DART
-				|| image == ItemSpriteSheet.CURARE_DART  || image == ItemSpriteSheet.JAVELIN) {
+        point(from);
 
-			angularSpeed = 0;
-			angle = 135 - (float)(Math.atan2( d.x, d.y ) / 3.1415926 * 180);
+        PointF d = PointF.diff(to, from);
+        speed.set(d).normalize().scale(SPEED);
 
-		} else {
+        if (image == ItemSpriteSheet.DART || image == ItemSpriteSheet.INCENDIARY_DART
+                || image == ItemSpriteSheet.CURARE_DART || image == ItemSpriteSheet.JAVELIN) {
 
-			angularSpeed = image == 15 || image == 106 ? 1440 : 720;
+            angularSpeed = 0;
+            angle = 135 - (float) (Math.atan2(d.x, d.y) / 3.1415926 * 180);
 
-		}
+        } else {
 
-		PosTweener tweener = new PosTweener( this, to, d.length() / SPEED );
-		tweener.listener = this;
-		parent.add( tweener );
-	}
+            angularSpeed = image == 15 || image == 106 ? 1440 : 720;
 
-	@Override
-	public void onComplete( Tweener tweener ) {
-		kill();
-		if (callback != null) {
-			callback.call();
-		}
-	}
+        }
+
+        PosTweener tweener = new PosTweener(this, to, d.length() / SPEED);
+        tweener.listener = this;
+        parent.add(tweener);
+    }
+
+    @Override
+    public void onComplete(Tweener tweener) {
+        kill();
+        if (callback != null) {
+            callback.call();
+        }
+    }
 }

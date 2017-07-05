@@ -37,95 +37,94 @@ import java.util.HashSet;
 
 public class Spinner extends Mob {
 
-	{
-		spriteClass = SpinnerSprite.class;
+    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		HP = HT = 50;
-		defenseSkill = 14;
+    static {
+        RESISTANCES.add(Poison.class);
+    }
 
-		EXP = 9;
-		maxLvl = 16;
+    static {
+        IMMUNITIES.add(Roots.class);
+    }
 
-		loot = new MysteryMeat();
-		lootChance = 0.125f;
+    {
+        spriteClass = SpinnerSprite.class;
 
-		FLEEING = new Fleeing();
-	}
+        HP = HT = 50;
+        defenseSkill = 14;
 
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange(10, 25);
-	}
+        EXP = 9;
+        maxLvl = 16;
 
-	@Override
-	public int attackSkill(Char target) {
-		return 20;
-	}
+        loot = new MysteryMeat();
+        lootChance = 0.125f;
 
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 6);
-	}
+        FLEEING = new Fleeing();
+    }
 
-	@Override
-	protected boolean act() {
-		boolean result = super.act();
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(10, 25);
+    }
 
-		if (state == FLEEING && buff( Terror.class ) == null &&
-				enemy != null && enemySeen && enemy.buff( Poison.class ) == null) {
-				state = HUNTING;
-		}
-		return result;
-	}
+    @Override
+    public int attackSkill(Char target) {
+        return 20;
+    }
 
-	@Override
-	public int attackProc(Char enemy, int damage) {
-		if (Random.Int(2) == 0) {
-			Buff.affect(enemy, Poison.class).set(Random.Int(7, 9) * Poison.durationFactor(enemy));
-			state = FLEEING;
-		}
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 6);
+    }
 
-		return damage;
-	}
+    @Override
+    protected boolean act() {
+        boolean result = super.act();
 
-	@Override
-	public void move(int step) {
-		if (state == FLEEING) {
-			GameScene.add(Blob.seed(pos, Random.Int(5, 7), Web.class));
-		}
-		super.move(step);
-	}
+        if (state == FLEEING && buff(Terror.class) == null &&
+                enemy != null && enemySeen && enemy.buff(Poison.class) == null) {
+            state = HUNTING;
+        }
+        return result;
+    }
 
-	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+    @Override
+    public int attackProc(Char enemy, int damage) {
+        if (Random.Int(2) == 0) {
+            Buff.affect(enemy, Poison.class).set(Random.Int(7, 9) * Poison.durationFactor(enemy));
+            state = FLEEING;
+        }
 
-	static {
-		RESISTANCES.add(Poison.class);
-	}
+        return damage;
+    }
 
-	@Override
-	public HashSet<Class<?>> resistances() {
-		return RESISTANCES;
-	}
+    @Override
+    public void move(int step) {
+        if (state == FLEEING) {
+            GameScene.add(Blob.seed(pos, Random.Int(5, 7), Web.class));
+        }
+        super.move(step);
+    }
 
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+    @Override
+    public HashSet<Class<?>> resistances() {
+        return RESISTANCES;
+    }
 
-	static {
-		IMMUNITIES.add(Roots.class);
-	}
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
-
-	private class Fleeing extends Mob.Fleeing {
-		@Override
-		protected void nowhereToRun() {
-			if (buff(Terror.class) == null) {
-				state = HUNTING;
-			} else {
-				super.nowhereToRun();
-			}
-		}
-	}
+    private class Fleeing extends Mob.Fleeing {
+        @Override
+        protected void nowhereToRun() {
+            if (buff(Terror.class) == null) {
+                state = HUNTING;
+            } else {
+                super.nowhereToRun();
+            }
+        }
+    }
 }

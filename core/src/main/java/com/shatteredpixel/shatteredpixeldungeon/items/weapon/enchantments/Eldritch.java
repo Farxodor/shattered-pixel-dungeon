@@ -33,30 +33,30 @@ import com.watabou.utils.Random;
 
 public class Eldritch extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing GREY = new ItemSprite.Glowing( 0x222222 );
-	
-	@Override
-	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		// lvl 0 - 20%
-		// lvl 1 - 33%
-		// lvl 2 - 43%
-		int level = Math.max( 0, weapon.level() );
-		
-		if (Random.Int( level + 5 ) >= 4) {
+    private static ItemSprite.Glowing GREY = new ItemSprite.Glowing(0x222222);
 
-			if (defender == Dungeon.hero) {
-				Buff.affect( defender, Vertigo.class, Vertigo.duration(defender) );
-			} else {
-				Buff.affect( defender, Terror.class, Terror.DURATION ).object = attacker.id();
-			}
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        // lvl 0 - 20%
+        // lvl 1 - 33%
+        // lvl 2 - 43%
+        int level = Math.max(0, weapon.level());
 
-		}
+        if (Random.Int(level + 5) >= 4) {
 
-		return damage;
-	}
-	
-	@Override
-	public Glowing glowing() {
-		return GREY;
-	}
+            if (defender == Dungeon.hero) {
+                Buff.affect(defender, Vertigo.class, Vertigo.duration(defender));
+            } else {
+                Buff.affect(defender, Terror.class, Terror.DURATION).object = attacker.id();
+            }
+
+        }
+
+        return damage;
+    }
+
+    @Override
+    public Glowing glowing() {
+        return GREY;
+    }
 }

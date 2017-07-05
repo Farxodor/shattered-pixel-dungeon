@@ -26,24 +26,24 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class GoldenKey extends Key {
-	
-	{
-		image = ItemSpriteSheet.GOLDEN_KEY;
-	}
 
-	@Override
-	public boolean doPickUp(Hero hero) {
-		Dungeon.hero.belongings.specialKeys[depth] += quantity();
-		return super.doPickUp(hero);
-	}
+    {
+        image = ItemSpriteSheet.GOLDEN_KEY;
+    }
 
-	public GoldenKey() {
-		this( 0 );
-	}
-	
-	public GoldenKey( int depth ) {
-		super();
-		this.depth = depth;
-	}
+    public GoldenKey() {
+        this(0);
+    }
+
+    public GoldenKey(int depth) {
+        super();
+        this.depth = depth;
+    }
+
+    @Override
+    public boolean doPickUp(Hero hero) {
+        Dungeon.hero.belongings.specialKeys[depth] += quantity();
+        return super.doPickUp(hero);
+    }
 
 }

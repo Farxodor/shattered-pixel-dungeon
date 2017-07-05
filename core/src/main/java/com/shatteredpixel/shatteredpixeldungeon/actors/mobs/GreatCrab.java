@@ -34,55 +34,55 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class GreatCrab extends Crab {
 
-	{
-		spriteClass = GreatCrabSprite.class;
+    private int moving = 0;
 
-		HP = HT = 25;
-		defenseSkill = 0; //see damage()
-		baseSpeed = 1f;
+    {
+        spriteClass = GreatCrabSprite.class;
 
-		EXP = 6;
+        HP = HT = 25;
+        defenseSkill = 0; //see damage()
+        baseSpeed = 1f;
 
-		state = WANDERING;
+        EXP = 6;
 
-		properties.add(Property.MINIBOSS);
-	}
+        state = WANDERING;
 
-	private int moving = 0;
+        properties.add(Property.MINIBOSS);
+    }
 
-	@Override
-	protected boolean getCloser( int target ) {
-		//this is used so that the crab remains slower, but still detects the player at the expected rate.
-		moving++;
-		if (moving < 3) {
-			return super.getCloser( target );
-		} else {
-			moving = 0;
-			return true;
-		}
+    @Override
+    protected boolean getCloser(int target) {
+        //this is used so that the crab remains slower, but still detects the player at the expected rate.
+        moving++;
+        if (moving < 3) {
+            return super.getCloser(target);
+        } else {
+            moving = 0;
+            return true;
+        }
 
-	}
+    }
 
-	@Override
-	public void damage( int dmg, Object src ){
-		//crab blocks all attacks originating from the hero or enemy characters or traps if it is alerted.
-		//All direct damage from these sources is negated, no exceptions. blob/debuff effects go through as normal.
-		if ((enemySeen && state != SLEEPING && paralysed == 0)
-				&& (src instanceof Wand || src instanceof LightningTrap.Electricity || src instanceof Char)){
-			GLog.n( Messages.get(this, "noticed") );
-			sprite.showStatus( CharSprite.NEUTRAL, Messages.get(this, "blocked") );
-		} else {
-			super.damage( dmg, src );
-		}
-	}
+    @Override
+    public void damage(int dmg, Object src) {
+        //crab blocks all attacks originating from the hero or enemy characters or traps if it is alerted.
+        //All direct damage from these sources is negated, no exceptions. blob/debuff effects go through as normal.
+        if ((enemySeen && state != SLEEPING && paralysed == 0)
+                && (src instanceof Wand || src instanceof LightningTrap.Electricity || src instanceof Char)) {
+            GLog.n(Messages.get(this, "noticed"));
+            sprite.showStatus(CharSprite.NEUTRAL, Messages.get(this, "blocked"));
+        } else {
+            super.damage(dmg, src);
+        }
+    }
 
-	@Override
-	public void die( Object cause ) {
-		super.die( cause );
+    @Override
+    public void die(Object cause) {
+        super.die(cause);
 
-		Ghost.Quest.process();
+        Ghost.Quest.process();
 
-		Dungeon.level.drop( new MysteryMeat(), pos );
-		Dungeon.level.drop( new MysteryMeat(), pos ).sprite.drop();
-	}
+        Dungeon.level.drop(new MysteryMeat(), pos);
+        Dungeon.level.drop(new MysteryMeat(), pos).sprite.drop();
+    }
 }

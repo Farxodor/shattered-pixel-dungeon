@@ -26,14 +26,14 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class SmallRation extends Food {
 
-	{
-		image = ItemSpriteSheet.OVERPRICED;
-		energy = Hunger.HUNGRY/2f;
-		hornValue = 1;
-	}
-	
-	@Override
-	public int price() {
-		return 10 * quantity;
-	}
+    {
+        image = ItemSpriteSheet.OVERPRICED;
+        energy = Hunger.HUNGRY / 2f;
+        hornValue = 1;
+    }
+
+    @Override
+    public int price() {
+        return 10 * quantity;
+    }
 }

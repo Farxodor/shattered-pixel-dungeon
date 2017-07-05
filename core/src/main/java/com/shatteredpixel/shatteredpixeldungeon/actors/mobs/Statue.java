@@ -40,136 +40,136 @@ import com.watabou.utils.Random;
 import java.util.HashSet;
 
 public class Statue extends Mob {
-	
-	{
-		spriteClass = StatueSprite.class;
 
-		EXP = 0;
-		state = PASSIVE;
-	}
-	
-	protected Weapon weapon;
-	
-	public Statue() {
-		super();
-		
-		do {
-			weapon = (Weapon)Generator.random( Generator.Category.WEAPON );
-		} while (!(weapon instanceof MeleeWeapon) || weapon.cursed);
-		
-		weapon.identify();
-		weapon.enchant( Enchantment.random() );
-		
-		HP = HT = 15 + Dungeon.depth * 5;
-		defenseSkill = 4 + Dungeon.depth;
-	}
-	
-	private static final String WEAPON	= "weapon";
-	
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( WEAPON, weapon );
-	}
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		weapon = (Weapon)bundle.get( WEAPON );
-	}
-	
-	@Override
-	protected boolean act() {
-		if (Dungeon.visible[pos]) {
-			Journal.add( Journal.Feature.STATUE );
-		}
-		return super.act();
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( weapon.min(), weapon.max() );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return (int)((9 + Dungeon.depth) * weapon.ACC);
-	}
-	
-	@Override
-	protected float attackDelay() {
-		return weapon.DLY;
-	}
+    private static final String WEAPON = "weapon";
+    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-	@Override
-	protected boolean canAttack(Char enemy) {
-		return Dungeon.level.distance( pos, enemy.pos ) <= weapon.RCH;
-	}
+    static {
+        RESISTANCES.add(ToxicGas.class);
+        RESISTANCES.add(Poison.class);
+        RESISTANCES.add(Grim.class);
+        IMMUNITIES.add(Vampiric.class);
+    }
 
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, Dungeon.depth + weapon.defenseFactor(null));
-	}
-	
-	@Override
-	public void damage( int dmg, Object src ) {
+    protected Weapon weapon;
 
-		if (state == PASSIVE) {
-			state = HUNTING;
-		}
-		
-		super.damage( dmg, src );
-	}
-	
-	@Override
-	public int attackProc( Char enemy, int damage ) {
-		return weapon.proc( this, enemy, damage );
-	}
-	
-	@Override
-	public void beckon( int cell ) {
-		// Do nothing
-	}
-	
-	@Override
-	public void die( Object cause ) {
-		Dungeon.level.drop( weapon, pos ).sprite.drop();
-		super.die( cause );
-	}
-	
-	@Override
-	public void destroy() {
-		Journal.remove( Journal.Feature.STATUE );
-		super.destroy();
-	}
-	
-	@Override
-	public boolean reset() {
-		state = PASSIVE;
-		return true;
-	}
+    {
+        spriteClass = StatueSprite.class;
 
-	@Override
-	public String description() {
-		return Messages.get(this, "desc", weapon.name());
-	}
-	
-	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		RESISTANCES.add( ToxicGas.class );
-		RESISTANCES.add( Poison.class );
-		RESISTANCES.add( Grim.class );
-		IMMUNITIES.add( Vampiric.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> resistances() {
-		return RESISTANCES;
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+        EXP = 0;
+        state = PASSIVE;
+    }
+
+    public Statue() {
+        super();
+
+        do {
+            weapon = (Weapon) Generator.random(Generator.Category.WEAPON);
+        } while (!(weapon instanceof MeleeWeapon) || weapon.cursed);
+
+        weapon.identify();
+        weapon.enchant(Enchantment.random());
+
+        HP = HT = 15 + Dungeon.depth * 5;
+        defenseSkill = 4 + Dungeon.depth;
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(WEAPON, weapon);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        weapon = (Weapon) bundle.get(WEAPON);
+    }
+
+    @Override
+    protected boolean act() {
+        if (Dungeon.visible[pos]) {
+            Journal.add(Journal.Feature.STATUE);
+        }
+        return super.act();
+    }
+
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(weapon.min(), weapon.max());
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return (int) ((9 + Dungeon.depth) * weapon.ACC);
+    }
+
+    @Override
+    protected float attackDelay() {
+        return weapon.DLY;
+    }
+
+    @Override
+    protected boolean canAttack(Char enemy) {
+        return Dungeon.level.distance(pos, enemy.pos) <= weapon.RCH;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, Dungeon.depth + weapon.defenseFactor(null));
+    }
+
+    @Override
+    public void damage(int dmg, Object src) {
+
+        if (state == PASSIVE) {
+            state = HUNTING;
+        }
+
+        super.damage(dmg, src);
+    }
+
+    @Override
+    public int attackProc(Char enemy, int damage) {
+        return weapon.proc(this, enemy, damage);
+    }
+
+    @Override
+    public void beckon(int cell) {
+        // Do nothing
+    }
+
+    @Override
+    public void die(Object cause) {
+        Dungeon.level.drop(weapon, pos).sprite.drop();
+        super.die(cause);
+    }
+
+    @Override
+    public void destroy() {
+        Journal.remove(Journal.Feature.STATUE);
+        super.destroy();
+    }
+
+    @Override
+    public boolean reset() {
+        state = PASSIVE;
+        return true;
+    }
+
+    @Override
+    public String description() {
+        return Messages.get(this, "desc", weapon.name());
+    }
+
+    @Override
+    public HashSet<Class<?>> resistances() {
+        return RESISTANCES;
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

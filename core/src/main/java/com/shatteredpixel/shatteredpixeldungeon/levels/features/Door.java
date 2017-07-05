@@ -30,22 +30,22 @@ import com.watabou.noosa.audio.Sample;
 
 public class Door {
 
-	public static void enter( int pos ) {
-		Level.set( pos, Terrain.OPEN_DOOR );
-		GameScene.updateMap( pos );
+    public static void enter(int pos) {
+        Level.set(pos, Terrain.OPEN_DOOR);
+        GameScene.updateMap(pos);
 
-		if (Dungeon.visible[pos]) {
-			Dungeon.observe();
-			Sample.INSTANCE.play( Assets.SND_OPEN );
-		}
-	}
+        if (Dungeon.visible[pos]) {
+            Dungeon.observe();
+            Sample.INSTANCE.play(Assets.SND_OPEN);
+        }
+    }
 
-	public static void leave( int pos ) {
-		if (Dungeon.level.heaps.get( pos ) == null) {
-			Level.set( pos, Terrain.DOOR );
-			GameScene.updateMap( pos );
-			if (Dungeon.visible[pos])
-				Dungeon.observe();
-		}
-	}
+    public static void leave(int pos) {
+        if (Dungeon.level.heaps.get(pos) == null) {
+            Level.set(pos, Terrain.DOOR);
+            GameScene.updateMap(pos);
+            if (Dungeon.visible[pos])
+                Dungeon.observe();
+        }
+    }
 }

@@ -32,25 +32,25 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Wound;
 
 public class GrippingTrap extends Trap {
 
-	{
-		color = GREY;
-		shape = CROSSHAIR;
-	}
+    {
+        color = GREY;
+        shape = CROSSHAIR;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		Char c = Actor.findChar( pos );
+        Char c = Actor.findChar(pos);
 
-		if (c != null) {
-			int damage = Math.max( 0,  (Dungeon.depth) - ( c.drRoll() / 2 ) );
-			Buff.affect( c, Bleeding.class ).set( damage );
-			Buff.prolong( c, Cripple.class, 15f);
-			Buff.prolong( c, Roots.class, 5f);
-			Wound.hit( c );
-		} else {
-			Wound.hit( pos );
-		}
+        if (c != null) {
+            int damage = Math.max(0, (Dungeon.depth) - (c.drRoll() / 2));
+            Buff.affect(c, Bleeding.class).set(damage);
+            Buff.prolong(c, Cripple.class, 15f);
+            Buff.prolong(c, Roots.class, 5f);
+            Wound.hit(c);
+        } else {
+            Wound.hit(pos);
+        }
 
-	}
+    }
 }

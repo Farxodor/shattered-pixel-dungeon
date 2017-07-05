@@ -39,50 +39,51 @@ import java.util.ArrayList;
 
 public class LightningTrap extends Trap {
 
-	{
-		color = TEAL;
-		shape = CROSSHAIR;
-	}
+    //FIXME: this is bad, handle when you rework resistances, make into a category
+    public static final Electricity LIGHTNING = new Electricity();
 
-	@Override
-	public void activate() {
+    {
+        color = TEAL;
+        shape = CROSSHAIR;
+    }
 
-		Char ch = Actor.findChar( pos );
+    @Override
+    public void activate() {
 
-		if (ch != null) {
-			ch.damage( Math.max( 1, Random.Int( ch.HP / 3, 2 * ch.HP / 3 ) ), LIGHTNING );
-			if (ch == Dungeon.hero) {
+        Char ch = Actor.findChar(pos);
 
-				Camera.main.shake( 2, 0.3f );
+        if (ch != null) {
+            ch.damage(Math.max(1, Random.Int(ch.HP / 3, 2 * ch.HP / 3)), LIGHTNING);
+            if (ch == Dungeon.hero) {
 
-				if (!ch.isAlive()) {
-					Dungeon.fail( getClass() );
-					GLog.n( Messages.get(this, "ondeath") );
-				}
-			}
+                Camera.main.shake(2, 0.3f);
 
-			ArrayList<Lightning.Arc> arcs = new ArrayList<>();
-			arcs.add(new Lightning.Arc(pos - Dungeon.level.width(), pos + Dungeon.level.width()));
-			arcs.add(new Lightning.Arc(pos - 1, pos + 1));
+                if (!ch.isAlive()) {
+                    Dungeon.fail(getClass());
+                    GLog.n(Messages.get(this, "ondeath"));
+                }
+            }
 
-			ch.sprite.parent.add( new Lightning( arcs, null ) );
-		}
+            ArrayList<Lightning.Arc> arcs = new ArrayList<>();
+            arcs.add(new Lightning.Arc(pos - Dungeon.level.width(), pos + Dungeon.level.width()));
+            arcs.add(new Lightning.Arc(pos - 1, pos + 1));
 
-		Heap heap = Dungeon.level.heaps.get(pos);
-		if (heap != null){
-			//TODO: this should probably charge staffs too
-			Item item = heap.items.peek();
-			if (item instanceof Wand){
-				Wand wand = (Wand)item;
-				((Wand)item).curCharges += (int)Math.ceil((wand.maxCharges - wand.curCharges)/2f);
-			}
-		}
+            ch.sprite.parent.add(new Lightning(arcs, null));
+        }
 
-		CellEmitter.center( pos ).burst( SparkParticle.FACTORY, Random.IntRange( 3, 4 ) );
-	}
+        Heap heap = Dungeon.level.heaps.get(pos);
+        if (heap != null) {
+            //TODO: this should probably charge staffs too
+            Item item = heap.items.peek();
+            if (item instanceof Wand) {
+                Wand wand = (Wand) item;
+                ((Wand) item).curCharges += (int) Math.ceil((wand.maxCharges - wand.curCharges) / 2f);
+            }
+        }
 
-	//FIXME: this is bad, handle when you rework resistances, make into a category
-	public static final Electricity LIGHTNING = new Electricity();
-	public static class Electricity {
-	}
+        CellEmitter.center(pos).burst(SparkParticle.FACTORY, Random.IntRange(3, 4));
+    }
+
+    public static class Electricity {
+    }
 }

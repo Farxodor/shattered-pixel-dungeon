@@ -27,20 +27,20 @@ import com.watabou.utils.Random;
 
 public class Shielded extends Brute {
 
-	{
-		spriteClass = ShieldedSprite.class;
-		
-		defenseSkill = 20;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 10);
-	}
-	
-	@Override
-	public void die( Object cause ) {
-		super.die( cause );
-		Badges.validateRare( this );
-	}
+    {
+        spriteClass = ShieldedSprite.class;
+
+        defenseSkill = 20;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 10);
+    }
+
+    @Override
+    public void die(Object cause) {
+        super.die(cause);
+        Badges.validateRare(this);
+    }
 }

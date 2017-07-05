@@ -27,94 +27,93 @@ import com.watabou.noosa.Image;
 
 public class ActionIndicator extends Tag {
 
-	Image icon;
+    public static Action action;
+    public static ActionIndicator instance;
+    Image icon;
 
-	public static Action action;
-	public static ActionIndicator instance;
+    public ActionIndicator() {
+        super(0xFFFF4C);
 
-	public ActionIndicator() {
-		super( 0xFFFF4C );
+        instance = this;
 
-		instance = this;
+        setSize(24, 24);
+        visible = false;
+    }
 
-		setSize( 24, 24 );
-		visible = false;
-	}
+    public static void setAction(Action action) {
+        ActionIndicator.action = action;
+        updateIcon();
+    }
 
-	@Override
-	public void destroy() {
-		super.destroy();
-		instance = null;
-		action = null;
-	}
+    public static void clearAction(Action action) {
+        if (ActionIndicator.action == action)
+            ActionIndicator.action = null;
+    }
 
-	@Override
-	protected void layout() {
-		super.layout();
+    public static void updateIcon() {
+        if (instance != null) {
+            if (instance.icon != null) {
+                instance.icon.killAndErase();
+                instance.icon = null;
+            }
+            if (action != null) {
+                instance.icon = action.getIcon();
+                instance.layout();
+            }
+        }
+    }
 
-		if (icon != null){
-			icon.x = x + (width - icon.width()) / 2;
-			icon.y = y + (height - icon.height()) / 2;
-			PixelScene.align(icon);
-			if (!members.contains(icon))
-				add(icon);
-		}
-	}
+    @Override
+    public void destroy() {
+        super.destroy();
+        instance = null;
+        action = null;
+    }
 
-	@Override
-	public void update() {
-		super.update();
+    @Override
+    protected void layout() {
+        super.layout();
 
-		if (!Dungeon.hero.ready){
-			if (icon != null) icon.alpha(0.5f);
-		} else {
-			if (icon != null) icon.alpha(1f);
-		}
+        if (icon != null) {
+            icon.x = x + (width - icon.width()) / 2;
+            icon.y = y + (height - icon.height()) / 2;
+            PixelScene.align(icon);
+            if (!members.contains(icon))
+                add(icon);
+        }
+    }
 
-		if (!visible && action != null){
-			visible = true;
-			updateIcon();
-			flash();
-		} else {
-			visible = action != null;
-		}
-	}
+    @Override
+    public void update() {
+        super.update();
 
-	@Override
-	protected void onClick() {
-		if (action != null && Dungeon.hero.ready)
-			action.doAction();
-	}
+        if (!Dungeon.hero.ready) {
+            if (icon != null) icon.alpha(0.5f);
+        } else {
+            if (icon != null) icon.alpha(1f);
+        }
 
-	public static void setAction(Action action){
-		ActionIndicator.action = action;
-		updateIcon();
-	}
+        if (!visible && action != null) {
+            visible = true;
+            updateIcon();
+            flash();
+        } else {
+            visible = action != null;
+        }
+    }
 
-	public static void clearAction(Action action){
-		if (ActionIndicator.action == action)
-			ActionIndicator.action = null;
-	}
+    @Override
+    protected void onClick() {
+        if (action != null && Dungeon.hero.ready)
+            action.doAction();
+    }
 
-	public static void updateIcon(){
-		if (instance != null){
-			if (instance.icon != null){
-				instance.icon.killAndErase();
-				instance.icon = null;
-			}
-			if (action != null){
-				instance.icon = action.getIcon();
-				instance.layout();
-			}
-		}
-	}
+    public interface Action {
 
-	public interface Action{
+        Image getIcon();
 
-		Image getIcon();
+        void doAction();
 
-		void doAction();
-
-	}
+    }
 
 }

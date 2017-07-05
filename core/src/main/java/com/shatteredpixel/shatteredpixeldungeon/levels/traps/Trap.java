@@ -31,92 +31,87 @@ import com.watabou.utils.Bundle;
 
 public abstract class Trap implements Bundlable {
 
-	//trap colors
-	public static final int RED     = 0;
-	public static final int ORANGE  = 1;
-	public static final int YELLOW  = 2;
-	public static final int GREEN   = 3;
-	public static final int TEAL    = 4;
-	public static final int VIOLET  = 5;
-	public static final int WHITE   = 6;
-	public static final int GREY    = 7;
-	public static final int BLACK   = 8;
+    //trap colors
+    public static final int RED = 0;
+    public static final int ORANGE = 1;
+    public static final int YELLOW = 2;
+    public static final int GREEN = 3;
+    public static final int TEAL = 4;
+    public static final int VIOLET = 5;
+    public static final int WHITE = 6;
+    public static final int GREY = 7;
+    public static final int BLACK = 8;
 
-	//trap shapes
-	public static final int DOTS        = 0;
-	public static final int WAVES       = 1;
-	public static final int GRILL       = 2;
-	public static final int STARS       = 3;
-	public static final int DIAMOND     = 4;
-	public static final int CROSSHAIR   = 5;
-	public static final int LARGE_DOT   = 6;
+    //trap shapes
+    public static final int DOTS = 0;
+    public static final int WAVES = 1;
+    public static final int GRILL = 2;
+    public static final int STARS = 3;
+    public static final int DIAMOND = 4;
+    public static final int CROSSHAIR = 5;
+    public static final int LARGE_DOT = 6;
+    private static final String POS = "pos";
+    private static final String VISIBLE = "visible";
+    private static final String ACTIVE = "active";
+    public String name = Messages.get(this, "name");
+    public int color;
+    public int shape;
+    public int pos;
+    public boolean visible;
+    public boolean active = true;
 
-	public String name = Messages.get(this, "name");
+    public Trap set(int pos) {
+        this.pos = pos;
+        return this;
+    }
 
-	public int color;
-	public int shape;
+    public Trap reveal() {
+        visible = true;
+        GameScene.updateMap(pos);
+        return this;
+    }
 
-	public int pos;
+    public Trap hide() {
+        visible = false;
+        GameScene.updateMap(pos);
+        return this;
+    }
 
-	public boolean visible;
-	public boolean active = true;
+    public void trigger() {
+        if (active) {
+            if (Dungeon.visible[pos]) {
+                Sample.INSTANCE.play(Assets.SND_TRAP);
+            }
+            disarm();
+            reveal();
+            activate();
+        }
+    }
 
-	public Trap set(int pos){
-		this.pos = pos;
-		return this;
-	}
+    public abstract void activate();
 
-	public Trap reveal() {
-		visible = true;
-		GameScene.updateMap(pos);
-		return this;
-	}
+    protected void disarm() {
+        Dungeon.level.disarmTrap(pos);
+        active = false;
+    }
 
-	public Trap hide() {
-		visible = false;
-		GameScene.updateMap(pos);
-		return this;
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        pos = bundle.getInt(POS);
+        visible = bundle.getBoolean(VISIBLE);
+        if (bundle.contains(ACTIVE)) {
+            active = bundle.getBoolean(ACTIVE);
+        }
+    }
 
-	public void trigger() {
-		if (active) {
-			if (Dungeon.visible[pos]) {
-				Sample.INSTANCE.play(Assets.SND_TRAP);
-			}
-			disarm();
-			reveal();
-			activate();
-		}
-	}
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        bundle.put(POS, pos);
+        bundle.put(VISIBLE, visible);
+        bundle.put(ACTIVE, active);
+    }
 
-	public abstract void activate();
-
-	protected void disarm(){
-		Dungeon.level.disarmTrap(pos);
-		active = false;
-	}
-
-	private static final String POS	= "pos";
-	private static final String VISIBLE	= "visible";
-	private static final String ACTIVE = "active";
-
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		pos = bundle.getInt( POS );
-		visible = bundle.getBoolean( VISIBLE );
-		if (bundle.contains(ACTIVE)){
-			active = bundle.getBoolean(ACTIVE);
-		}
-	}
-
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		bundle.put( POS, pos );
-		bundle.put( VISIBLE, visible );
-		bundle.put( ACTIVE, active );
-	}
-
-	public String desc() {
-		return Messages.get(this, "desc");
-	}
+    public String desc() {
+        return Messages.get(this, "desc");
+    }
 }

@@ -31,64 +31,64 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTiledVisual;
 import com.watabou.utils.Point;
 
 public class RitualSiteRoom extends StandardRoom {
-	
-	@Override
-	public int minWidth() {
-		return Math.max(super.minWidth(), 5);
-	}
-	
-	@Override
-	public int minHeight() {
-		return Math.max(super.minHeight(), 5);
-	}
 
-	public void paint( Level level ) {
+    @Override
+    public int minWidth() {
+        return Math.max(super.minWidth(), 5);
+    }
 
-		for (Door door : connected.values()) {
-			door.set( Door.Type.REGULAR );
-		}
+    @Override
+    public int minHeight() {
+        return Math.max(super.minHeight(), 5);
+    }
 
-		Painter.fill(level, this, Terrain.WALL);
-		Painter.fill(level, this, 1, Terrain.EMPTY);
+    public void paint(Level level) {
 
-		RitualMarker vis = new RitualMarker();
-		Point c = center();
-		vis.pos(c.x - 1, c.y - 1);
+        for (Door door : connected.values()) {
+            door.set(Door.Type.REGULAR);
+        }
 
-		level.customTiles.add(vis);
-		
-		Painter.fill(level, c.x-1, c.y-1, 3, 3, Terrain.EMPTY_DECO);
+        Painter.fill(level, this, Terrain.WALL);
+        Painter.fill(level, this, 1, Terrain.EMPTY);
 
-		level.addItemToSpawn(new CeremonialCandle());
-		level.addItemToSpawn(new CeremonialCandle());
-		level.addItemToSpawn(new CeremonialCandle());
-		level.addItemToSpawn(new CeremonialCandle());
+        RitualMarker vis = new RitualMarker();
+        Point c = center();
+        vis.pos(c.x - 1, c.y - 1);
 
-		CeremonialCandle.ritualPos = c.x + (level.width() * c.y);
-	}
+        level.customTiles.add(vis);
 
-	public static class RitualMarker extends CustomTiledVisual {
+        Painter.fill(level, c.x - 1, c.y - 1, 3, 3, Terrain.EMPTY_DECO);
 
-		public RitualMarker(){
-			super( Assets.PRISON_QUEST );
-		}
+        level.addItemToSpawn(new CeremonialCandle());
+        level.addItemToSpawn(new CeremonialCandle());
+        level.addItemToSpawn(new CeremonialCandle());
+        level.addItemToSpawn(new CeremonialCandle());
 
-		@Override
-		public CustomTiledVisual create() {
-			tileH = tileW = 3;
-			mapSimpleImage(0, 0);
-			return super.create();
-		}
+        CeremonialCandle.ritualPos = c.x + (level.width() * c.y);
+    }
 
-		@Override
-		public String name(int tileX, int tileY) {
-			return Messages.get(this, "name");
-		}
+    public static class RitualMarker extends CustomTiledVisual {
 
-		@Override
-		public String desc(int tileX, int tileY) {
-			return Messages.get(this, "desc");
-		}
-	}
+        public RitualMarker() {
+            super(Assets.PRISON_QUEST);
+        }
+
+        @Override
+        public CustomTiledVisual create() {
+            tileH = tileW = 3;
+            mapSimpleImage(0, 0);
+            return super.create();
+        }
+
+        @Override
+        public String name(int tileX, int tileY) {
+            return Messages.get(this, "name");
+        }
+
+        @Override
+        public String desc(int tileX, int tileY) {
+            return Messages.get(this, "desc");
+        }
+    }
 
 }

@@ -29,25 +29,25 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class PotionOfStrength extends Potion {
 
-	{
-		initials = 10;
+    {
+        initials = 10;
 
-		bones = true;
-	}
-	
-	@Override
-	public void apply( Hero hero ) {
-		setKnown();
-		
-		hero.STR++;
-		hero.sprite.showStatus( CharSprite.POSITIVE, Messages.get(this, "msg_1") );
-		GLog.p( Messages.get(this, "msg_2") );
-		
-		Badges.validateStrengthAttained();
-	}
+        bones = true;
+    }
 
-	@Override
-	public int price() {
-		return isKnown() ? 50 * quantity : super.price();
-	}
+    @Override
+    public void apply(Hero hero) {
+        setKnown();
+
+        hero.STR++;
+        hero.sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "msg_1"));
+        GLog.p(Messages.get(this, "msg_2"));
+
+        Badges.validateStrengthAttained();
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 50 * quantity : super.price();
+    }
 }

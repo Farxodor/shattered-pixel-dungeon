@@ -54,403 +54,395 @@ import java.util.ArrayList;
 
 public abstract class Wand extends Item {
 
-	private static final int USAGES_TO_KNOW    = 20;
+    public static final String AC_ZAP = "ZAP";
+    private static final int USAGES_TO_KNOW = 20;
+    private static final float TIME_TO_ZAP = 1f;
+    private static final String UNFAMILIRIARITY = "unfamiliarity";
+    private static final String CUR_CHARGES = "curCharges";
+    private static final String CUR_CHARGE_KNOWN = "curChargeKnown";
+    private static final String PARTIALCHARGE = "partialCharge";
+    protected static CellSelector.Listener zapper = new CellSelector.Listener() {
 
-	public static final String AC_ZAP	= "ZAP";
+        @Override
+        public void onSelect(Integer target) {
 
-	private static final float TIME_TO_ZAP	= 1f;
-	
-	public int maxCharges = initialCharges();
-	public int curCharges = maxCharges;
-	public float partialCharge = 0f;
-	
-	protected Charger charger;
-	
-	private boolean curChargeKnown = false;
+            if (target != null) {
 
-	protected int usagesToKnow = USAGES_TO_KNOW;
+                final Wand curWand = (Wand) Wand.curItem;
 
-	protected int collisionProperties = Ballistica.MAGIC_BOLT;
-	
-	{
-		defaultAction = AC_ZAP;
-		usesTargeting = true;
-	}
-	
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (curCharges > 0 || !curChargeKnown) {
-			actions.add( AC_ZAP );
-		}
+                final Ballistica shot = new Ballistica(curUser.pos, target, curWand.collisionProperties);
+                int cell = shot.collisionPos;
 
-		return actions;
-	}
-	
-	@Override
-	public void execute( Hero hero, String action ) {
+                if (target == curUser.pos || cell == curUser.pos) {
+                    GLog.i(Messages.get(Wand.class, "self_target"));
+                    return;
+                }
 
-		super.execute( hero, action );
+                curUser.sprite.zap(cell);
 
-		if (action.equals( AC_ZAP )) {
-			
-			curUser = hero;
-			curItem = this;
-			GameScene.selectCell( zapper );
-			
-		}
-	}
-	
-	protected abstract void onZap( Ballistica attack );
+                //attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
+                if (Actor.findChar(target) != null)
+                    QuickSlotButton.target(Actor.findChar(target));
+                else
+                    QuickSlotButton.target(Actor.findChar(cell));
 
-	public abstract void onHit( MagesStaff staff, Char attacker, Char defender, int damage);
+                if (curWand.curCharges >= (curWand.cursed ? 1 : curWand.chargesPerCast())) {
 
-	@Override
-	public boolean collect( Bag container ) {
-		if (super.collect( container )) {
-			if (container.owner != null) {
-				if (container instanceof WandHolster)
-					charge( container.owner, WandHolster.HOLSTER_SCALE_FACTOR);
-				else
-					charge( container.owner );
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	public void charge( Char owner ) {
-		if (charger == null) charger = new Charger();
-		charger.attachTo( owner );
-	}
+                    curUser.busy();
 
-	public void charge( Char owner, float chargeScaleFactor ){
-		charge( owner );
-		charger.setScaleFactor( chargeScaleFactor );
-	}
+                    if (curWand.cursed) {
+                        CursedWand.cursedZap(curWand, curUser, new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT));
+                        if (!curWand.cursedKnown) {
+                            curWand.cursedKnown = true;
+                            GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
+                        }
+                    } else {
+                        curWand.fx(shot, new Callback() {
+                            public void call() {
+                                curWand.onZap(shot);
+                                curWand.wandUsed();
+                            }
+                        });
+                    }
 
-	protected void processSoulMark(Char target, int chargesUsed){
-		if (target != Dungeon.hero &&
-				Dungeon.hero.subClass == HeroSubClass.WARLOCK &&
-				Random.Float() < .15f + (level()*chargesUsed*0.03f)){
-			SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + level());
-		}
-	}
+                    Invisibility.dispel();
 
-	@Override
-	public void onDetach( ) {
-		stopCharging();
-	}
+                } else {
 
-	public void stopCharging() {
-		if (charger != null) {
-			charger.detach();
-			charger = null;
-		}
-	}
-	
-	public void level( int value) {
-		super.level( value );
-		updateLevel();
-	}
-	
-	@Override
-	public Item identify() {
+                    GLog.w(Messages.get(Wand.class, "fizzles"));
 
-		curChargeKnown = true;
-		super.identify();
-		
-		updateQuickslot();
-		
-		return this;
-	}
+                }
 
-	@Override
-	public String info() {
-		String desc = desc();
+            }
+        }
 
-		desc += "\n\n" + statsDesc();
+        @Override
+        public String prompt() {
+            return Messages.get(Wand.class, "prompt");
+        }
+    };
+    public int maxCharges = initialCharges();
+    public int curCharges = maxCharges;
+    public float partialCharge = 0f;
+    protected Charger charger;
+    protected int usagesToKnow = USAGES_TO_KNOW;
+    protected int collisionProperties = Ballistica.MAGIC_BOLT;
+    private boolean curChargeKnown = false;
 
-		if (cursed && cursedKnown)
-			desc += "\n\n" + Messages.get(Wand.class, "cursed");
+    {
+        defaultAction = AC_ZAP;
+        usesTargeting = true;
+    }
 
-		return desc;
-	}
+    @Override
+    public ArrayList<String> actions(Hero hero) {
+        ArrayList<String> actions = super.actions(hero);
+        if (curCharges > 0 || !curChargeKnown) {
+            actions.add(AC_ZAP);
+        }
 
-	public String statsDesc(){
-		return Messages.get(this, "stats_desc");
-	}
+        return actions;
+    }
 
-	@Override
-	public boolean isIdentified() {
-		return super.isIdentified() && curChargeKnown;
-	}
-	
-	@Override
-	public String status() {
-		if (levelKnown) {
-			return (curChargeKnown ? curCharges : "?") + "/" + maxCharges;
-		} else {
-			return null;
-		}
-	}
-	
-	@Override
-	public Item upgrade() {
+    @Override
+    public void execute(Hero hero, String action) {
 
-		super.upgrade();
+        super.execute(hero, action);
 
-		if (Random.Float() > Math.pow(0.9, level()))
-			cursed = false;
+        if (action.equals(AC_ZAP)) {
 
-		updateLevel();
-		curCharges = Math.min( curCharges + 1, maxCharges );
-		updateQuickslot();
-		
-		return this;
-	}
-	
-	@Override
-	public Item degrade() {
-		super.degrade();
-		
-		updateLevel();
-		updateQuickslot();
-		
-		return this;
-	}
-	
-	public void updateLevel() {
-		maxCharges = Math.min( initialCharges() + level(), 10 );
-		curCharges = Math.min( curCharges, maxCharges );
-	}
-	
-	protected int initialCharges() {
-		return 2;
-	}
+            curUser = hero;
+            curItem = this;
+            GameScene.selectCell(zapper);
 
-	protected int chargesPerCast() {
-		return 1;
-	}
-	
-	protected void fx( Ballistica bolt, Callback callback ) {
-		MagicMissile.boltFromChar( curUser.sprite.parent,
-				MagicMissile.MAGIC_MISSILE,
-				curUser.sprite,
-				bolt.collisionPos,
-				callback);
-		Sample.INSTANCE.play( Assets.SND_ZAP );
-	}
+        }
+    }
 
-	public void staffFx( MagesStaff.StaffParticle particle ){
-		particle.color(0xFFFFFF); particle.am = 0.3f;
-		particle.setLifespan( 1f);
-		particle.speed.polar( Random.Float(PointF.PI2), 2f );
-		particle.setSize( 1f, 2f );
-		particle.radiateXY(0.5f);
-	}
+    protected abstract void onZap(Ballistica attack);
 
-	protected void wandUsed() {
-		usagesToKnow -= cursed ? 1 : chargesPerCast();
-		curCharges -= cursed ? 1 : chargesPerCast();
-		if (!isIdentified() && usagesToKnow <= 0) {
-			identify();
-			GLog.w( Messages.get(Wand.class, "identify", name()) );
-		} else {
-			if (curUser.heroClass == HeroClass.MAGE) levelKnown = true;
-			updateQuickslot();
-		}
+    public abstract void onHit(MagesStaff staff, Char attacker, Char defender, int damage);
 
-		curUser.spendAndNext( TIME_TO_ZAP );
-	}
-	
-	@Override
-	public Item random() {
-		int n = 0;
+    @Override
+    public boolean collect(Bag container) {
+        if (super.collect(container)) {
+            if (container.owner != null) {
+                if (container instanceof WandHolster)
+                    charge(container.owner, WandHolster.HOLSTER_SCALE_FACTOR);
+                else
+                    charge(container.owner);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		if (Random.Int(3) == 0) {
-			n++;
-			if (Random.Int(5) == 0) {
-				n++;
-			}
-		}
+    public void charge(Char owner) {
+        if (charger == null) charger = new Charger();
+        charger.attachTo(owner);
+    }
 
-		upgrade(n);
-		if (Random.Float() < 0.3f) {
-			cursed = true;
-			cursedKnown = false;
-		}
+    public void charge(Char owner, float chargeScaleFactor) {
+        charge(owner);
+        charger.setScaleFactor(chargeScaleFactor);
+    }
 
-		return this;
-	}
-	
-	@Override
-	public int price() {
-		int price = 75;
-		if (cursed && cursedKnown) {
-			price /= 2;
-		}
-		if (levelKnown) {
-			if (level() > 0) {
-				price *= (level() + 1);
-			} else if (level() < 0) {
-				price /= (1 - level());
-			}
-		}
-		if (price < 1) {
-			price = 1;
-		}
-		return price;
-	}
+    protected void processSoulMark(Char target, int chargesUsed) {
+        if (target != Dungeon.hero &&
+                Dungeon.hero.subClass == HeroSubClass.WARLOCK &&
+                Random.Float() < .15f + (level() * chargesUsed * 0.03f)) {
+            SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + level());
+        }
+    }
 
-	private static final String UNFAMILIRIARITY     = "unfamiliarity";
-	private static final String CUR_CHARGES			= "curCharges";
-	private static final String CUR_CHARGE_KNOWN	= "curChargeKnown";
-	private static final String PARTIALCHARGE 		= "partialCharge";
-	
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( UNFAMILIRIARITY, usagesToKnow );
-		bundle.put( CUR_CHARGES, curCharges );
-		bundle.put( CUR_CHARGE_KNOWN, curChargeKnown );
-		bundle.put( PARTIALCHARGE , partialCharge );
-	}
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		if ((usagesToKnow = bundle.getInt( UNFAMILIRIARITY )) == 0) {
-			usagesToKnow = USAGES_TO_KNOW;
-		}
-		curCharges = bundle.getInt( CUR_CHARGES );
-		curChargeKnown = bundle.getBoolean( CUR_CHARGE_KNOWN );
-		partialCharge = bundle.getFloat( PARTIALCHARGE );
-	}
-	
-	protected static CellSelector.Listener zapper = new  CellSelector.Listener() {
-		
-		@Override
-		public void onSelect( Integer target ) {
-			
-			if (target != null) {
+    @Override
+    public void onDetach() {
+        stopCharging();
+    }
 
-				final Wand curWand = (Wand)Wand.curItem;
+    public void stopCharging() {
+        if (charger != null) {
+            charger.detach();
+            charger = null;
+        }
+    }
 
-				final Ballistica shot = new Ballistica( curUser.pos, target, curWand.collisionProperties);
-				int cell = shot.collisionPos;
-				
-				if (target == curUser.pos || cell == curUser.pos) {
-					GLog.i( Messages.get(Wand.class, "self_target") );
-					return;
-				}
+    public void level(int value) {
+        super.level(value);
+        updateLevel();
+    }
 
-				curUser.sprite.zap(cell);
+    @Override
+    public Item identify() {
 
-				//attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
-				if (Actor.findChar(target) != null)
-					QuickSlotButton.target(Actor.findChar(target));
-				else
-					QuickSlotButton.target(Actor.findChar(cell));
-				
-				if (curWand.curCharges >= (curWand.cursed ? 1 : curWand.chargesPerCast())) {
-					
-					curUser.busy();
+        curChargeKnown = true;
+        super.identify();
 
-					if (curWand.cursed){
-						CursedWand.cursedZap(curWand, curUser, new Ballistica( curUser.pos, target, Ballistica.MAGIC_BOLT));
-						if (!curWand.cursedKnown){
-							curWand.cursedKnown = true;
-							GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
-						}
-					} else {
-						curWand.fx(shot, new Callback() {
-							public void call() {
-								curWand.onZap(shot);
-								curWand.wandUsed();
-							}
-						});
-					}
-					
-					Invisibility.dispel();
-					
-				} else {
+        updateQuickslot();
 
-					GLog.w( Messages.get(Wand.class, "fizzles") );
+        return this;
+    }
 
-				}
-				
-			}
-		}
-		
-		@Override
-		public String prompt() {
-			return Messages.get(Wand.class, "prompt");
-		}
-	};
-	
-	public class Charger extends Buff {
-		
-		private static final float BASE_CHARGE_DELAY = 10f;
-		private static final float SCALING_CHARGE_ADDITION = 40f;
-		private static final float NORMAL_SCALE_FACTOR = 0.875f;
+    @Override
+    public String info() {
+        String desc = desc();
 
-		private static final float CHARGE_BUFF_BONUS = 0.25f;
+        desc += "\n\n" + statsDesc();
 
-		float scalingFactor = NORMAL_SCALE_FACTOR;
-		
-		@Override
-		public boolean attachTo( Char target ) {
-			super.attachTo( target );
-			
-			return true;
-		}
-		
-		@Override
-		public boolean act() {
-			if (curCharges < maxCharges)
-				recharge();
-			
-			if (partialCharge >= 1 && curCharges < maxCharges) {
-				partialCharge--;
-				curCharges++;
-				updateQuickslot();
-			}
-			
-			spend( TICK );
-			
-			return true;
-		}
+        if (cursed && cursedKnown)
+            desc += "\n\n" + Messages.get(Wand.class, "cursed");
 
-		private void recharge(){
-			int missingCharges = maxCharges - curCharges;
+        return desc;
+    }
 
-			float turnsToCharge = (float) (BASE_CHARGE_DELAY
-					+ (SCALING_CHARGE_ADDITION * Math.pow(scalingFactor, missingCharges)));
+    public String statsDesc() {
+        return Messages.get(this, "stats_desc");
+    }
 
-			LockedFloor lock = target.buff(LockedFloor.class);
-			if (lock == null || lock.regenOn())
-				partialCharge += 1f/turnsToCharge;
+    @Override
+    public boolean isIdentified() {
+        return super.isIdentified() && curChargeKnown;
+    }
 
-			Recharging bonus = target.buff(Recharging.class);
-			if (bonus != null && bonus.remainder() > 0f){
-				partialCharge += CHARGE_BUFF_BONUS * bonus.remainder();
-			}
-		}
+    @Override
+    public String status() {
+        if (levelKnown) {
+            return (curChargeKnown ? curCharges : "?") + "/" + maxCharges;
+        } else {
+            return null;
+        }
+    }
 
-		public void gainCharge(float charge){
-			partialCharge += charge;
-			while (partialCharge >= 1f){
-				curCharges++;
-				partialCharge--;
-			}
-			curCharges = Math.min(curCharges, maxCharges);
-			updateQuickslot();
-		}
+    @Override
+    public Item upgrade() {
 
-		private void setScaleFactor(float value){
-			this.scalingFactor = value;
-		}
-	}
+        super.upgrade();
+
+        if (Random.Float() > Math.pow(0.9, level()))
+            cursed = false;
+
+        updateLevel();
+        curCharges = Math.min(curCharges + 1, maxCharges);
+        updateQuickslot();
+
+        return this;
+    }
+
+    @Override
+    public Item degrade() {
+        super.degrade();
+
+        updateLevel();
+        updateQuickslot();
+
+        return this;
+    }
+
+    public void updateLevel() {
+        maxCharges = Math.min(initialCharges() + level(), 10);
+        curCharges = Math.min(curCharges, maxCharges);
+    }
+
+    protected int initialCharges() {
+        return 2;
+    }
+
+    protected int chargesPerCast() {
+        return 1;
+    }
+
+    protected void fx(Ballistica bolt, Callback callback) {
+        MagicMissile.boltFromChar(curUser.sprite.parent,
+                MagicMissile.MAGIC_MISSILE,
+                curUser.sprite,
+                bolt.collisionPos,
+                callback);
+        Sample.INSTANCE.play(Assets.SND_ZAP);
+    }
+
+    public void staffFx(MagesStaff.StaffParticle particle) {
+        particle.color(0xFFFFFF);
+        particle.am = 0.3f;
+        particle.setLifespan(1f);
+        particle.speed.polar(Random.Float(PointF.PI2), 2f);
+        particle.setSize(1f, 2f);
+        particle.radiateXY(0.5f);
+    }
+
+    protected void wandUsed() {
+        usagesToKnow -= cursed ? 1 : chargesPerCast();
+        curCharges -= cursed ? 1 : chargesPerCast();
+        if (!isIdentified() && usagesToKnow <= 0) {
+            identify();
+            GLog.w(Messages.get(Wand.class, "identify", name()));
+        } else {
+            if (curUser.heroClass == HeroClass.MAGE) levelKnown = true;
+            updateQuickslot();
+        }
+
+        curUser.spendAndNext(TIME_TO_ZAP);
+    }
+
+    @Override
+    public Item random() {
+        int n = 0;
+
+        if (Random.Int(3) == 0) {
+            n++;
+            if (Random.Int(5) == 0) {
+                n++;
+            }
+        }
+
+        upgrade(n);
+        if (Random.Float() < 0.3f) {
+            cursed = true;
+            cursedKnown = false;
+        }
+
+        return this;
+    }
+
+    @Override
+    public int price() {
+        int price = 75;
+        if (cursed && cursedKnown) {
+            price /= 2;
+        }
+        if (levelKnown) {
+            if (level() > 0) {
+                price *= (level() + 1);
+            } else if (level() < 0) {
+                price /= (1 - level());
+            }
+        }
+        if (price < 1) {
+            price = 1;
+        }
+        return price;
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(UNFAMILIRIARITY, usagesToKnow);
+        bundle.put(CUR_CHARGES, curCharges);
+        bundle.put(CUR_CHARGE_KNOWN, curChargeKnown);
+        bundle.put(PARTIALCHARGE, partialCharge);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if ((usagesToKnow = bundle.getInt(UNFAMILIRIARITY)) == 0) {
+            usagesToKnow = USAGES_TO_KNOW;
+        }
+        curCharges = bundle.getInt(CUR_CHARGES);
+        curChargeKnown = bundle.getBoolean(CUR_CHARGE_KNOWN);
+        partialCharge = bundle.getFloat(PARTIALCHARGE);
+    }
+
+    public class Charger extends Buff {
+
+        private static final float BASE_CHARGE_DELAY = 10f;
+        private static final float SCALING_CHARGE_ADDITION = 40f;
+        private static final float NORMAL_SCALE_FACTOR = 0.875f;
+
+        private static final float CHARGE_BUFF_BONUS = 0.25f;
+
+        float scalingFactor = NORMAL_SCALE_FACTOR;
+
+        @Override
+        public boolean attachTo(Char target) {
+            super.attachTo(target);
+
+            return true;
+        }
+
+        @Override
+        public boolean act() {
+            if (curCharges < maxCharges)
+                recharge();
+
+            if (partialCharge >= 1 && curCharges < maxCharges) {
+                partialCharge--;
+                curCharges++;
+                updateQuickslot();
+            }
+
+            spend(TICK);
+
+            return true;
+        }
+
+        private void recharge() {
+            int missingCharges = maxCharges - curCharges;
+
+            float turnsToCharge = (float) (BASE_CHARGE_DELAY
+                    + (SCALING_CHARGE_ADDITION * Math.pow(scalingFactor, missingCharges)));
+
+            LockedFloor lock = target.buff(LockedFloor.class);
+            if (lock == null || lock.regenOn())
+                partialCharge += 1f / turnsToCharge;
+
+            Recharging bonus = target.buff(Recharging.class);
+            if (bonus != null && bonus.remainder() > 0f) {
+                partialCharge += CHARGE_BUFF_BONUS * bonus.remainder();
+            }
+        }
+
+        public void gainCharge(float charge) {
+            partialCharge += charge;
+            while (partialCharge >= 1f) {
+                curCharges++;
+                partialCharge--;
+            }
+            curCharges = Math.min(curCharges, maxCharges);
+            updateQuickslot();
+        }
+
+        private void setScaleFactor(float value) {
+            this.scalingFactor = value;
+        }
+    }
 }

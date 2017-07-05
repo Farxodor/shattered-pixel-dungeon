@@ -31,171 +31,167 @@ import java.util.List;
 
 public class RenderedTextMultiline extends Component {
 
-	private int maxWidth = Integer.MAX_VALUE;
-	public int nLines;
+    private static final String SPACE = " ";
+    private static final String NEWLINE = "\n";
+    private static final String UNDERSCORE = "_";
+    public int nLines;
+    private int maxWidth = Integer.MAX_VALUE;
+    private String text;
+    private List<String> tokens;
+    private ArrayList<RenderedText> words = new ArrayList<>();
+    private int size;
+    private float zoom;
+    private int color = -1;
+    private boolean chinese = false;
 
-	private String text;
-	private List<String> tokens;
-	private ArrayList<RenderedText> words = new ArrayList<>();
+    public RenderedTextMultiline(int size) {
+        this.size = size;
+    }
 
-	private int size;
-	private float zoom;
-	private int color = -1;
+    public RenderedTextMultiline(String text, int size) {
+        this.size = size;
+        text(text);
+    }
 
-	private static final String SPACE = " ";
-	private static final String NEWLINE = "\n";
-	private static final String UNDERSCORE = "_";
+    public void text(String text) {
+        this.text = text;
 
-	private boolean chinese = false;
+        if (text != null && !text.equals("")) {
+            //conversion for chinese text
 
-	public RenderedTextMultiline(int size){
-		this.size = size;
-	}
+            chinese = text.replaceAll("\\p{Han}", "").length() != text.length();
 
-	public RenderedTextMultiline(String text, int size){
-		this.size = size;
-		text(text);
-	}
+            if (chinese) {
+                tokens = Arrays.asList(text.split(""));
+            } else {
+                tokens = Arrays.asList(text.split("(?<= )|(?= )|(?<=\n)|(?=\n)"));
+            }
+            build();
+        }
+    }
 
-	public void text(String text){
-		this.text = text;
+    public void text(String text, int maxWidth) {
+        this.maxWidth = maxWidth;
+        text(text);
+    }
 
-		if (text != null && !text.equals("")) {
-			//conversion for chinese text
+    public String text() {
+        return text;
+    }
 
-			chinese = text.replaceAll("\\p{Han}", "").length() != text.length();
+    public void maxWidth(int maxWidth) {
+        if (this.maxWidth != maxWidth) {
+            this.maxWidth = maxWidth;
+            layout();
+        }
+    }
 
-			if (chinese){
-				tokens = Arrays.asList(text.split(""));
-			} else {
-				tokens = Arrays.asList(text.split("(?<= )|(?= )|(?<=\n)|(?=\n)"));
-			}
-			build();
-		}
-	}
+    public int maxWidth() {
+        return maxWidth;
+    }
 
-	public void text(String text, int maxWidth){
-		this.maxWidth = maxWidth;
-		text(text);
-	}
+    private synchronized void build() {
+        clear();
+        words = new ArrayList<>();
+        boolean highlighting = false;
+        for (String str : tokens) {
+            if (str.equals(UNDERSCORE)) {
+                highlighting = !highlighting;
+            } else if (str.equals(NEWLINE)) {
+                words.add(null);
+            } else if (!str.equals(SPACE)) {
+                RenderedText word;
+                if (str.startsWith(UNDERSCORE) && str.endsWith(UNDERSCORE)) {
+                    word = new RenderedText(str.substring(1, str.length() - 1), size);
+                    word.hardlight(0xFFFF44);
+                } else {
+                    if (str.startsWith(UNDERSCORE)) {
+                        highlighting = !highlighting;
+                        word = new RenderedText(str.substring(1, str.length()), size);
+                    } else if (str.endsWith(UNDERSCORE)) {
+                        word = new RenderedText(str.substring(0, str.length() - 1), size);
+                    } else {
+                        word = new RenderedText(str, size);
+                    }
+                    if (highlighting) word.hardlight(0xFFFF44);
+                    else if (color != -1) word.hardlight(color);
 
-	public String text(){
-		return text;
-	}
+                    if (str.endsWith(UNDERSCORE)) highlighting = !highlighting;
+                }
+                word.scale.set(zoom);
+                words.add(word);
+                add(word);
 
-	public void maxWidth(int maxWidth){
-		if (this.maxWidth != maxWidth){
-			this.maxWidth = maxWidth;
-			layout();
-		}
-	}
+                if (height < word.baseLine()) height = word.baseLine();
 
-	public int maxWidth(){
-		return maxWidth;
-	}
+            }
+        }
+        layout();
+    }
 
-	private synchronized void build(){
-		clear();
-		words = new ArrayList<>();
-		boolean highlighting = false;
-		for (String str : tokens){
-			if (str.equals(UNDERSCORE)){
-				highlighting = !highlighting;
-			} else if (str.equals(NEWLINE)){
-				words.add(null);
-			} else if (!str.equals(SPACE)){
-				RenderedText word;
-				if (str.startsWith(UNDERSCORE) && str.endsWith(UNDERSCORE)){
-					word = new RenderedText(str.substring(1, str.length()-1), size);
-					word.hardlight(0xFFFF44);
-				} else {
-					if (str.startsWith(UNDERSCORE)){
-						highlighting = !highlighting;
-						word = new RenderedText(str.substring(1, str.length()), size);
-					} else if (str.endsWith(UNDERSCORE)) {
-						word = new RenderedText(str.substring(0, str.length()-1), size);
-					} else {
-						word = new RenderedText(str, size);
-					}
-					if (highlighting) word.hardlight(0xFFFF44);
-					else if (color != -1) word.hardlight(color);
+    public synchronized void zoom(float zoom) {
+        this.zoom = zoom;
+        for (RenderedText word : words) {
+            if (word != null) word.scale.set(zoom);
+        }
+    }
 
-					if (str.endsWith(UNDERSCORE)) highlighting = !highlighting;
-				}
-				word.scale.set(zoom);
-				words.add(word);
-				add(word);
+    public synchronized void hardlight(int color) {
+        this.color = color;
+        for (RenderedText word : words) {
+            if (word != null) word.hardlight(color);
+        }
+    }
 
-				if (height < word.baseLine()) height = word.baseLine();
+    public synchronized void invert() {
+        if (words != null) {
+            for (RenderedText word : words) {
+                if (word != null) {
+                    word.ra = 0.77f;
+                    word.ga = 0.73f;
+                    word.ba = 0.62f;
+                    word.rm = -0.77f;
+                    word.gm = -0.73f;
+                    word.bm = -0.62f;
+                }
+            }
+        }
+    }
 
-			}
-		}
-		layout();
-	}
+    @Override
+    protected synchronized void layout() {
+        super.layout();
+        float x = this.x;
+        float y = this.y;
+        float height = 0;
+        nLines = 1;
 
-	public synchronized void zoom(float zoom){
-		this.zoom = zoom;
-		for (RenderedText word : words) {
-			if (word != null) word.scale.set(zoom);
-		}
-	}
+        for (RenderedText word : words) {
+            if (word == null) {
+                //newline
+                y += height + 0.5f;
+                x = this.x;
+                nLines++;
+            } else {
+                if (word.height() > height) height = word.baseLine();
 
-	public synchronized void hardlight(int color){
-		this.color = color;
-		for (RenderedText word : words) {
-			if (word != null) word.hardlight( color );
-		}
-	}
+                if ((x - this.x) + word.width() > maxWidth) {
+                    y += height + 0.5f;
+                    x = this.x;
+                    nLines++;
+                }
 
-	public synchronized void invert(){
-		if (words != null) {
-			for (RenderedText word : words) {
-				if (word != null) {
-					word.ra = 0.77f;
-					word.ga = 0.73f;
-					word.ba = 0.62f;
-					word.rm = -0.77f;
-					word.gm = -0.73f;
-					word.bm = -0.62f;
-				}
-			}
-		}
-	}
+                word.x = x;
+                word.y = y;
+                PixelScene.align(word);
+                x += word.width();
+                if (!chinese) x++;
+                else x--;
 
-	@Override
-	protected synchronized void layout() {
-		super.layout();
-		float x = this.x;
-		float y = this.y;
-		float height = 0;
-		nLines = 1;
+                if ((x - this.x) > width) width = (x - this.x);
 
-		for (RenderedText word : words){
-			if (word == null) {
-				//newline
-				y += height+0.5f;
-				x = this.x;
-				nLines++;
-			} else {
-				if (word.height() > height) height = word.baseLine();
-
-				if ((x - this.x) + word.width() > maxWidth){
-					y += height+0.5f;
-					x = this.x;
-					nLines++;
-				}
-
-				word.x = x;
-				word.y = y;
-				PixelScene.align(word);
-				x += word.width();
-				if (!chinese) x ++;
-				else x--;
-
-				if ((x - this.x) > width) width = (x - this.x);
-
-			}
-		}
-		this.height = (y - this.y) + height+0.5f;
-	}
+            }
+        }
+        this.height = (y - this.y) + height + 0.5f;
+    }
 }

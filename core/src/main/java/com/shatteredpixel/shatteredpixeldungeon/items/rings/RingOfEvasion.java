@@ -22,12 +22,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 public class RingOfEvasion extends Ring {
-	
-	@Override
-	protected RingBuff buff( ) {
-		return new Evasion();
-	}
 
-	public class Evasion extends RingBuff {
-	}
+    @Override
+    protected RingBuff buff() {
+        return new Evasion();
+    }
+
+    public class Evasion extends RingBuff {
+    }
 }

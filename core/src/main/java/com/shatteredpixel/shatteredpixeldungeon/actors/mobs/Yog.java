@@ -61,380 +61,383 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Yog extends Mob {
-	
-	{
-		spriteClass = YogSprite.class;
-		
-		HP = HT = 300;
-		
-		EXP = 50;
-		
-		state = PASSIVE;
 
-		properties.add(Property.BOSS);
-		properties.add(Property.IMMOVABLE);
-		properties.add(Property.DEMONIC);
-	}
-	
-	public Yog() {
-		super();
-	}
-	
-	public void spawnFists() {
-		RottingFist fist1 = new RottingFist();
-		BurningFist fist2 = new BurningFist();
-		
-		do {
-			fist1.pos = pos + PathFinder.NEIGHBOURS8[Random.Int( 8 )];
-			fist2.pos = pos + PathFinder.NEIGHBOURS8[Random.Int( 8 )];
-		} while (!Level.passable[fist1.pos] || !Level.passable[fist2.pos] || fist1.pos == fist2.pos);
-		
-		GameScene.add( fist1 );
-		GameScene.add( fist2 );
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		notice();
-	}
+    static {
 
-	@Override
-	protected boolean act() {
-		//heals 1 health per turn
-		HP = Math.min( HT, HP+1 );
+        IMMUNITIES.add(Grim.class);
+        IMMUNITIES.add(Terror.class);
+        IMMUNITIES.add(Amok.class);
+        IMMUNITIES.add(Charm.class);
+        IMMUNITIES.add(Sleep.class);
+        IMMUNITIES.add(Burning.class);
+        IMMUNITIES.add(ToxicGas.class);
+        IMMUNITIES.add(ScrollOfPsionicBlast.class);
+        IMMUNITIES.add(Vertigo.class);
+    }
 
-		return super.act();
-	}
+    {
+        spriteClass = YogSprite.class;
 
-	@Override
-	public void damage( int dmg, Object src ) {
+        HP = HT = 300;
 
-		HashSet<Mob> fists = new HashSet<>();
+        EXP = 50;
 
-		for (Mob mob : Dungeon.level.mobs)
-			if (mob instanceof RottingFist || mob instanceof BurningFist)
-				fists.add( mob );
+        state = PASSIVE;
 
-		for (Mob fist : fists)
-			fist.beckon( pos );
+        properties.add(Property.BOSS);
+        properties.add(Property.IMMOVABLE);
+        properties.add(Property.DEMONIC);
+    }
 
-		dmg >>= fists.size();
-		
-		super.damage( dmg, src );
+    public Yog() {
+        super();
+    }
+
+    public void spawnFists() {
+        RottingFist fist1 = new RottingFist();
+        BurningFist fist2 = new BurningFist();
+
+        do {
+            fist1.pos = pos + PathFinder.NEIGHBOURS8[Random.Int(8)];
+            fist2.pos = pos + PathFinder.NEIGHBOURS8[Random.Int(8)];
+        }
+        while (!Level.passable[fist1.pos] || !Level.passable[fist2.pos] || fist1.pos == fist2.pos);
+
+        GameScene.add(fist1);
+        GameScene.add(fist2);
+
+        notice();
+    }
+
+    @Override
+    protected boolean act() {
+        //heals 1 health per turn
+        HP = Math.min(HT, HP + 1);
+
+        return super.act();
+    }
+
+    @Override
+    public void damage(int dmg, Object src) {
+
+        HashSet<Mob> fists = new HashSet<>();
+
+        for (Mob mob : Dungeon.level.mobs)
+            if (mob instanceof RottingFist || mob instanceof BurningFist)
+                fists.add(mob);
+
+        for (Mob fist : fists)
+            fist.beckon(pos);
+
+        dmg >>= fists.size();
+
+        super.damage(dmg, src);
 
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null) lock.addTime(dmg*0.5f);
+        LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+        if (lock != null) lock.addTime(dmg * 0.5f);
 
-	}
-	
-	@Override
-	public int defenseProc( Char enemy, int damage ) {
+    }
 
-		ArrayList<Integer> spawnPoints = new ArrayList<>();
-		
-		for (int i=0; i < PathFinder.NEIGHBOURS8.length; i++) {
-			int p = pos + PathFinder.NEIGHBOURS8[i];
-			if (Actor.findChar( p ) == null && (Level.passable[p] || Level.avoid[p])) {
-				spawnPoints.add( p );
-			}
-		}
-		
-		if (spawnPoints.size() > 0) {
-			Larva larva = new Larva();
-			larva.pos = Random.element( spawnPoints );
-			
-			GameScene.add( larva );
-			Actor.addDelayed( new Pushing( larva, pos, larva.pos ), -1 );
-		}
+    @Override
+    public int defenseProc(Char enemy, int damage) {
 
-		for (Mob mob : Dungeon.level.mobs) {
-			if (mob instanceof BurningFist || mob instanceof RottingFist || mob instanceof Larva) {
-				mob.aggro( enemy );
-			}
-		}
+        ArrayList<Integer> spawnPoints = new ArrayList<>();
 
-		return super.defenseProc(enemy, damage);
-	}
-	
-	@Override
-	public void beckon( int cell ) {
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void die( Object cause ) {
+        for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+            int p = pos + PathFinder.NEIGHBOURS8[i];
+            if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
+                spawnPoints.add(p);
+            }
+        }
 
-		for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()) {
-			if (mob instanceof BurningFist || mob instanceof RottingFist) {
-				mob.die( cause );
-			}
-		}
-		
-		GameScene.bossSlain();
-		Dungeon.level.drop( new SkeletonKey( Dungeon.depth ), pos ).sprite.drop();
-		super.die( cause );
-		
-		yell( Messages.get(this, "defeated") );
-	}
-	
-	@Override
-	public void notice() {
-		super.notice();
-		BossHealthBar.assignBoss(this);
-		yell( Messages.get(this, "notice") );
-	}
-	
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		
-		IMMUNITIES.add( Grim.class );
-		IMMUNITIES.add( Terror.class );
-		IMMUNITIES.add( Amok.class );
-		IMMUNITIES.add( Charm.class );
-		IMMUNITIES.add( Sleep.class );
-		IMMUNITIES.add( Burning.class );
-		IMMUNITIES.add( ToxicGas.class );
-		IMMUNITIES.add( ScrollOfPsionicBlast.class );
-		IMMUNITIES.add( Vertigo.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+        if (spawnPoints.size() > 0) {
+            Larva larva = new Larva();
+            larva.pos = Random.element(spawnPoints);
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		BossHealthBar.assignBoss(this);
-	}
+            GameScene.add(larva);
+            Actor.addDelayed(new Pushing(larva, pos, larva.pos), -1);
+        }
 
-	public static class RottingFist extends Mob {
-	
-		private static final int REGENERATION	= 4;
-		
-		{
-			spriteClass = RottingFistSprite.class;
-			
-			HP = HT = 300;
-			defenseSkill = 25;
-			
-			EXP = 0;
-			
-			state = WANDERING;
+        for (Mob mob : Dungeon.level.mobs) {
+            if (mob instanceof BurningFist || mob instanceof RottingFist || mob instanceof Larva) {
+                mob.aggro(enemy);
+            }
+        }
 
-			properties.add(Property.BOSS);
-			properties.add(Property.DEMONIC);
-		}
-		
-		@Override
-		public int attackSkill( Char target ) {
-			return 36;
-		}
-		
-		@Override
-		public int damageRoll() {
-			return Random.NormalIntRange( 20, 50 );
-		}
-		
-		@Override
-		public int drRoll() {
-			return Random.NormalIntRange(0, 15);
-		}
-		
-		@Override
-		public int attackProc( Char enemy, int damage ) {
-			if (Random.Int( 3 ) == 0) {
-				Buff.affect( enemy, Ooze.class );
-				enemy.sprite.burst( 0xFF000000, 5 );
-			}
-			
-			return damage;
-		}
-		
-		@Override
-		public boolean act() {
-			
-			if (Level.water[pos] && HP < HT) {
-				sprite.emitter().burst( ShadowParticle.UP, 2 );
-				HP += REGENERATION;
-			}
-			
-			return super.act();
-		}
+        return super.defenseProc(enemy, damage);
+    }
 
-		@Override
-		public void damage(int dmg, Object src) {
-			super.damage(dmg, src);
-			LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-			if (lock != null) lock.addTime(dmg*0.5f);
-		}
-		
-		private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-		static {
-			RESISTANCES.add( ToxicGas.class );
-			RESISTANCES.add( Grim.class );
-			RESISTANCES.add( ScrollOfPsionicBlast.class );
-		}
-		
-		@Override
-		public HashSet<Class<?>> resistances() {
-			return RESISTANCES;
-		}
-		
-		private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-		static {
-			IMMUNITIES.add( Amok.class );
-			IMMUNITIES.add( Sleep.class );
-			IMMUNITIES.add( Terror.class );
-			IMMUNITIES.add( Poison.class );
-			IMMUNITIES.add( Vertigo.class );
-		}
-		
-		@Override
-		public HashSet<Class<?>> immunities() {
-			return IMMUNITIES;
-		}
-	}
-	
-	public static class BurningFist extends Mob {
-		
-		{
-			spriteClass = BurningFistSprite.class;
-			
-			HP = HT = 200;
-			defenseSkill = 25;
-			
-			EXP = 0;
-			
-			state = WANDERING;
+    @Override
+    public void beckon(int cell) {
+    }
 
-			properties.add(Property.BOSS);
-			properties.add(Property.DEMONIC);
-		}
-		
-		@Override
-		public int attackSkill( Char target ) {
-			return 36;
-		}
-		
-		@Override
-		public int damageRoll() {
-			return Random.NormalIntRange( 26, 32 );
-		}
-		
-		@Override
-		public int drRoll() {
-			return Random.NormalIntRange(0, 15);
-		}
-		
-		@Override
-		protected boolean canAttack( Char enemy ) {
-			return new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
-		}
-		
-		@Override
-		public boolean attack( Char enemy ) {
-			
-			if (!Dungeon.level.adjacent( pos, enemy.pos )) {
-				spend( attackDelay() );
-				
-				if (hit( this, enemy, true )) {
-					
-					int dmg =  damageRoll();
-					enemy.damage( dmg, this );
-					
-					enemy.sprite.bloodBurstA( sprite.center(), dmg );
-					enemy.sprite.flash();
-					
-					if (!enemy.isAlive() && enemy == Dungeon.hero) {
-						Dungeon.fail( getClass() );
-						GLog.n( Messages.get(Char.class, "kill", name) );
-					}
-					return true;
-					
-				} else {
-					
-					enemy.sprite.showStatus( CharSprite.NEUTRAL,  enemy.defenseVerb() );
-					return false;
-				}
-			} else {
-				return super.attack( enemy );
-			}
-		}
-		
-		@Override
-		public boolean act() {
-			
-			for (int i=0; i < PathFinder.NEIGHBOURS9.length; i++) {
-				GameScene.add( Blob.seed( pos + PathFinder.NEIGHBOURS9[i], 2, Fire.class ) );
-			}
-			
-			return super.act();
-		}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void die(Object cause) {
 
-		@Override
-		public void damage(int dmg, Object src) {
-			super.damage(dmg, src);
-			LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-			if (lock != null) lock.addTime(dmg*0.5f);
-		}
-		
-		private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-		static {
-			RESISTANCES.add( ToxicGas.class );
-			RESISTANCES.add( Grim.class );
+        for (Mob mob : (Iterable<Mob>) Dungeon.level.mobs.clone()) {
+            if (mob instanceof BurningFist || mob instanceof RottingFist) {
+                mob.die(cause);
+            }
+        }
 
-		}
-		
-		@Override
-		public HashSet<Class<?>> resistances() {
-			return RESISTANCES;
-		}
-		
-		private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-		static {
-			IMMUNITIES.add( Amok.class );
-			IMMUNITIES.add( Sleep.class );
-			IMMUNITIES.add( Terror.class );
-			IMMUNITIES.add( Burning.class );
-			IMMUNITIES.add( ScrollOfPsionicBlast.class );
-			IMMUNITIES.add( Vertigo.class );
-		}
-		
-		@Override
-		public HashSet<Class<?>> immunities() {
-			return IMMUNITIES;
-		}
-	}
-	
-	public static class Larva extends Mob {
-		
-		{
-			spriteClass = LarvaSprite.class;
-			
-			HP = HT = 25;
-			defenseSkill = 20;
-			
-			EXP = 0;
-			
-			state = HUNTING;
+        GameScene.bossSlain();
+        Dungeon.level.drop(new SkeletonKey(Dungeon.depth), pos).sprite.drop();
+        super.die(cause);
 
-			properties.add(Property.DEMONIC);
-		}
-		
-		@Override
-		public int attackSkill( Char target ) {
-			return 30;
-		}
-		
-		@Override
-		public int damageRoll() {
-			return Random.NormalIntRange( 22, 30 );
-		}
-		
-		@Override
-		public int drRoll() {
-			return Random.NormalIntRange(0, 8);
-		}
+        yell(Messages.get(this, "defeated"));
+    }
 
-	}
+    @Override
+    public void notice() {
+        super.notice();
+        BossHealthBar.assignBoss(this);
+        yell(Messages.get(this, "notice"));
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        BossHealthBar.assignBoss(this);
+    }
+
+    public static class RottingFist extends Mob {
+
+        private static final int REGENERATION = 4;
+        private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+        private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+
+        static {
+            RESISTANCES.add(ToxicGas.class);
+            RESISTANCES.add(Grim.class);
+            RESISTANCES.add(ScrollOfPsionicBlast.class);
+        }
+
+        static {
+            IMMUNITIES.add(Amok.class);
+            IMMUNITIES.add(Sleep.class);
+            IMMUNITIES.add(Terror.class);
+            IMMUNITIES.add(Poison.class);
+            IMMUNITIES.add(Vertigo.class);
+        }
+
+        {
+            spriteClass = RottingFistSprite.class;
+
+            HP = HT = 300;
+            defenseSkill = 25;
+
+            EXP = 0;
+
+            state = WANDERING;
+
+            properties.add(Property.BOSS);
+            properties.add(Property.DEMONIC);
+        }
+
+        @Override
+        public int attackSkill(Char target) {
+            return 36;
+        }
+
+        @Override
+        public int damageRoll() {
+            return Random.NormalIntRange(20, 50);
+        }
+
+        @Override
+        public int drRoll() {
+            return Random.NormalIntRange(0, 15);
+        }
+
+        @Override
+        public int attackProc(Char enemy, int damage) {
+            if (Random.Int(3) == 0) {
+                Buff.affect(enemy, Ooze.class);
+                enemy.sprite.burst(0xFF000000, 5);
+            }
+
+            return damage;
+        }
+
+        @Override
+        public boolean act() {
+
+            if (Level.water[pos] && HP < HT) {
+                sprite.emitter().burst(ShadowParticle.UP, 2);
+                HP += REGENERATION;
+            }
+
+            return super.act();
+        }
+
+        @Override
+        public void damage(int dmg, Object src) {
+            super.damage(dmg, src);
+            LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+            if (lock != null) lock.addTime(dmg * 0.5f);
+        }
+
+        @Override
+        public HashSet<Class<?>> resistances() {
+            return RESISTANCES;
+        }
+
+        @Override
+        public HashSet<Class<?>> immunities() {
+            return IMMUNITIES;
+        }
+    }
+
+    public static class BurningFist extends Mob {
+
+        private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+        private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+
+        static {
+            RESISTANCES.add(ToxicGas.class);
+            RESISTANCES.add(Grim.class);
+
+        }
+
+        static {
+            IMMUNITIES.add(Amok.class);
+            IMMUNITIES.add(Sleep.class);
+            IMMUNITIES.add(Terror.class);
+            IMMUNITIES.add(Burning.class);
+            IMMUNITIES.add(ScrollOfPsionicBlast.class);
+            IMMUNITIES.add(Vertigo.class);
+        }
+
+        {
+            spriteClass = BurningFistSprite.class;
+
+            HP = HT = 200;
+            defenseSkill = 25;
+
+            EXP = 0;
+
+            state = WANDERING;
+
+            properties.add(Property.BOSS);
+            properties.add(Property.DEMONIC);
+        }
+
+        @Override
+        public int attackSkill(Char target) {
+            return 36;
+        }
+
+        @Override
+        public int damageRoll() {
+            return Random.NormalIntRange(26, 32);
+        }
+
+        @Override
+        public int drRoll() {
+            return Random.NormalIntRange(0, 15);
+        }
+
+        @Override
+        protected boolean canAttack(Char enemy) {
+            return new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
+        }
+
+        @Override
+        public boolean attack(Char enemy) {
+
+            if (!Dungeon.level.adjacent(pos, enemy.pos)) {
+                spend(attackDelay());
+
+                if (hit(this, enemy, true)) {
+
+                    int dmg = damageRoll();
+                    enemy.damage(dmg, this);
+
+                    enemy.sprite.bloodBurstA(sprite.center(), dmg);
+                    enemy.sprite.flash();
+
+                    if (!enemy.isAlive() && enemy == Dungeon.hero) {
+                        Dungeon.fail(getClass());
+                        GLog.n(Messages.get(Char.class, "kill", name));
+                    }
+                    return true;
+
+                } else {
+
+                    enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+                    return false;
+                }
+            } else {
+                return super.attack(enemy);
+            }
+        }
+
+        @Override
+        public boolean act() {
+
+            for (int i = 0; i < PathFinder.NEIGHBOURS9.length; i++) {
+                GameScene.add(Blob.seed(pos + PathFinder.NEIGHBOURS9[i], 2, Fire.class));
+            }
+
+            return super.act();
+        }
+
+        @Override
+        public void damage(int dmg, Object src) {
+            super.damage(dmg, src);
+            LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+            if (lock != null) lock.addTime(dmg * 0.5f);
+        }
+
+        @Override
+        public HashSet<Class<?>> resistances() {
+            return RESISTANCES;
+        }
+
+        @Override
+        public HashSet<Class<?>> immunities() {
+            return IMMUNITIES;
+        }
+    }
+
+    public static class Larva extends Mob {
+
+        {
+            spriteClass = LarvaSprite.class;
+
+            HP = HT = 25;
+            defenseSkill = 20;
+
+            EXP = 0;
+
+            state = HUNTING;
+
+            properties.add(Property.DEMONIC);
+        }
+
+        @Override
+        public int attackSkill(Char target) {
+            return 30;
+        }
+
+        @Override
+        public int damageRoll() {
+            return Random.NormalIntRange(22, 30);
+        }
+
+        @Override
+        public int drRoll() {
+            return Random.NormalIntRange(0, 8);
+        }
+
+    }
 }

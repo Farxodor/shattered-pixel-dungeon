@@ -27,17 +27,17 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 public class AntiMagic extends Armor.Glyph {
 
-	private static ItemSprite.Glowing TEAL = new ItemSprite.Glowing( 0x88EEFF );
+    private static ItemSprite.Glowing TEAL = new ItemSprite.Glowing(0x88EEFF);
 
-	@Override
-	public int proc(Armor armor, Char attacker, Char defender, int damage) {
-		//no proc effect, see Hero.damage
-		return damage;
-	}
+    @Override
+    public int proc(Armor armor, Char attacker, Char defender, int damage) {
+        //no proc effect, see Hero.damage
+        return damage;
+    }
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return TEAL;
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return TEAL;
+    }
 
 }

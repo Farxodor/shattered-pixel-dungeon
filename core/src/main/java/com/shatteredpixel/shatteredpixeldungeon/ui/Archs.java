@@ -32,70 +32,67 @@ import com.watabou.noosa.ui.Component;
 
 public class Archs extends Component {
 
-	private static final float SCROLL_SPEED	= 20f;
+    private static final float SCROLL_SPEED = 20f;
+    private static float offsB = 0;
+    private static float offsF = 0;
+    public boolean reversed = false;
+    private SkinnedBlock arcsBg;
+    private SkinnedBlock arcsFg;
 
-	private SkinnedBlock arcsBg;
-	private SkinnedBlock arcsFg;
+    @Override
+    protected void createChildren() {
+        arcsBg = new SkinnedBlock(1, 1, Assets.ARCS_BG) {
+            @Override
+            protected NoosaScript script() {
+                return NoosaScriptNoLighting.get();
+            }
 
-	private static float offsB = 0;
-	private static float offsF = 0;
+            @Override
+            public void draw() {
+                //arch bg has no alpha component, this improves performance
+                GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ZERO);
+                super.draw();
+                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        };
+        arcsBg.autoAdjust = true;
+        arcsBg.offsetTo(0, offsB);
+        add(arcsBg);
 
-	public boolean reversed = false;
+        arcsFg = new SkinnedBlock(1, 1, Assets.ARCS_FG) {
+            @Override
+            protected NoosaScript script() {
+                return NoosaScriptNoLighting.get();
+            }
+        };
+        arcsFg.autoAdjust = true;
+        arcsFg.offsetTo(0, offsF);
+        add(arcsFg);
+    }
 
-	@Override
-	protected void createChildren() {
-		arcsBg = new SkinnedBlock( 1, 1, Assets.ARCS_BG ){
-			@Override
-			protected NoosaScript script() {
-				return NoosaScriptNoLighting.get();
-			}
+    @Override
+    protected void layout() {
+        arcsBg.size(width, height);
+        arcsBg.offset(arcsBg.texture.width / 4 - (width % arcsBg.texture.width) / 2, 0);
 
-			@Override
-			public void draw() {
-				//arch bg has no alpha component, this improves performance
-				GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ZERO);
-				super.draw();
-				GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
-			}
-		};
-		arcsBg.autoAdjust = true;
-		arcsBg.offsetTo( 0,  offsB );
-		add( arcsBg );
+        arcsFg.size(width, height);
+        arcsFg.offset(arcsFg.texture.width / 4 - (width % arcsFg.texture.width) / 2, 0);
+    }
 
-		arcsFg = new SkinnedBlock( 1, 1, Assets.ARCS_FG ){
-			@Override
-			protected NoosaScript script() {
-				return NoosaScriptNoLighting.get();
-			}
-		};
-		arcsFg.autoAdjust = true;
-		arcsFg.offsetTo( 0,  offsF );
-		add( arcsFg );
-	}
+    @Override
+    public void update() {
 
-	@Override
-	protected void layout() {
-		arcsBg.size( width, height );
-		arcsBg.offset( arcsBg.texture.width / 4 - (width % arcsBg.texture.width) / 2, 0 );
+        super.update();
 
-		arcsFg.size( width, height );
-		arcsFg.offset( arcsFg.texture.width / 4 - (width % arcsFg.texture.width) / 2, 0 );
-	}
+        float shift = Game.elapsed * SCROLL_SPEED;
+        if (reversed) {
+            shift = -shift;
+        }
 
-	@Override
-	public void update() {
+        arcsBg.offset(0, shift);
+        arcsFg.offset(0, shift * 2);
 
-		super.update();
-
-		float shift = Game.elapsed * SCROLL_SPEED;
-		if (reversed) {
-			shift = -shift;
-		}
-
-		arcsBg.offset( 0, shift );
-		arcsFg.offset( 0, shift * 2 );
-
-		offsB = arcsBg.offsetY();
-		offsF = arcsFg.offsetY();
-	}
+        offsB = arcsBg.offsetY();
+        offsF = arcsFg.offsetY();
+    }
 }

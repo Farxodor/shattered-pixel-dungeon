@@ -36,93 +36,94 @@ import java.util.HashSet;
 
 public class RotHeart extends Mob {
 
-	{
-		spriteClass = RotHeartSprite.class;
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		HP = HT = 80;
-		defenseSkill = 0;
+    static {
+        IMMUNITIES.add(ToxicGas.class);
+        IMMUNITIES.add(Terror.class);
+    }
 
-		EXP = 4;
+    {
+        spriteClass = RotHeartSprite.class;
 
-		state = PASSIVE;
+        HP = HT = 80;
+        defenseSkill = 0;
 
-		properties.add(Property.IMMOVABLE);
-		properties.add(Property.MINIBOSS);
-	}
+        EXP = 4;
 
-	@Override
-	public void damage(int dmg, Object src) {
-		//TODO: when effect properties are done, change this to FIRE
-		if (src instanceof Burning) {
-			destroy();
-			sprite.die();
-		} else {
-			super.damage(dmg, src);
-		}
-	}
+        state = PASSIVE;
 
-	@Override
-	public int defenseProc(Char enemy, int damage) {
-		GameScene.add(Blob.seed(pos, 20, ToxicGas.class));
+        properties.add(Property.IMMOVABLE);
+        properties.add(Property.MINIBOSS);
+    }
 
-		return super.defenseProc(enemy, damage);
-	}
+    @Override
+    public void damage(int dmg, Object src) {
+        //TODO: when effect properties are done, change this to FIRE
+        if (src instanceof Burning) {
+            destroy();
+            sprite.die();
+        } else {
+            super.damage(dmg, src);
+        }
+    }
 
-	@Override
-	public void beckon(int cell) {
-		//do nothing
-	}
+    @Override
+    public int defenseProc(Char enemy, int damage) {
+        GameScene.add(Blob.seed(pos, 20, ToxicGas.class));
 
-	@Override
-	protected boolean getCloser(int target) {
-		return false;
-	}
+        return super.defenseProc(enemy, damage);
+    }
 
-	@Override
-	public void destroy() {
-		super.destroy();
-		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[Dungeon.level.mobs.size()])){
-			if (mob instanceof RotLasher){
-				mob.die(null);
-			}
-		}
-	}
+    @Override
+    public void beckon(int cell) {
+        //do nothing
+    }
 
-	@Override
-	public void die(Object cause) {
-		super.die(cause);
-		Dungeon.level.drop( new Rotberry.Seed(), pos ).sprite.drop();
-	}
+    @Override
+    protected boolean getCloser(int target) {
+        return false;
+    }
 
-	@Override
-	public boolean reset() {
-		return true;
-	}
+    @Override
+    public void destroy() {
+        super.destroy();
+        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[Dungeon.level.mobs.size()])) {
+            if (mob instanceof RotLasher) {
+                mob.die(null);
+            }
+        }
+    }
 
-	@Override
-	public int damageRoll() {
-		return 0;
-	}
+    @Override
+    public void die(Object cause) {
+        super.die(cause);
+        Dungeon.level.drop(new Rotberry.Seed(), pos).sprite.drop();
+    }
 
-	@Override
-	public int attackSkill( Char target ) {
-		return 0;
-	}
+    @Override
+    public boolean reset() {
+        return true;
+    }
 
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 5);
-	}
+    @Override
+    public int damageRoll() {
+        return 0;
+    }
 
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( ToxicGas.class );
-		IMMUNITIES.add( Terror.class );
-	}
+    @Override
+    public int attackSkill(Char target) {
+        return 0;
+    }
 
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 5);
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 
 }

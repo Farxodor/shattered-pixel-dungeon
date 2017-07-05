@@ -29,58 +29,58 @@ import java.util.HashMap;
 
 public class GamesInProgress {
 
-	private static HashMap<HeroClass, Info> state = new HashMap<HeroClass, Info>();
-	
-	public static Info check( HeroClass cl ) {
-		
-		if (state.containsKey( cl )) {
-			
-			return state.get( cl );
-			
-		} else {
-			
-			Info info;
-			try {
-				
-				Bundle bundle = Dungeon.gameBundle( Dungeon.gameFile( cl ) );
-				info = new Info();
-				Dungeon.preview( info, bundle );
-				
-				//saves from before 0.4.0 are not supported
-				if (info.version < ShatteredPixelDungeon.v0_4_0){
-					info = null;
-				}
+    private static HashMap<HeroClass, Info> state = new HashMap<HeroClass, Info>();
 
-			} catch (IOException e) {
-				info = null;
-			}
-			
-			state.put( cl, info );
-			return info;
-			
-		}
-	}
+    public static Info check(HeroClass cl) {
 
-	public static void set( HeroClass cl, int depth, int level, boolean challenges ) {
-		Info info = new Info();
-		info.depth = depth;
-		info.level = level;
-		info.challenges = challenges;
-		state.put( cl, info );
-	}
-	
-	public static void setUnknown( HeroClass cl ) {
-		state.remove( cl );
-	}
-	
-	public static void delete( HeroClass cl ) {
-		state.put( cl, null );
-	}
-	
-	public static class Info {
-		public int depth;
-		public int level;
-		public int version;
-		public boolean challenges;
-	}
+        if (state.containsKey(cl)) {
+
+            return state.get(cl);
+
+        } else {
+
+            Info info;
+            try {
+
+                Bundle bundle = Dungeon.gameBundle(Dungeon.gameFile(cl));
+                info = new Info();
+                Dungeon.preview(info, bundle);
+
+                //saves from before 0.4.0 are not supported
+                if (info.version < ShatteredPixelDungeon.v0_4_0) {
+                    info = null;
+                }
+
+            } catch (IOException e) {
+                info = null;
+            }
+
+            state.put(cl, info);
+            return info;
+
+        }
+    }
+
+    public static void set(HeroClass cl, int depth, int level, boolean challenges) {
+        Info info = new Info();
+        info.depth = depth;
+        info.level = level;
+        info.challenges = challenges;
+        state.put(cl, info);
+    }
+
+    public static void setUnknown(HeroClass cl) {
+        state.remove(cl);
+    }
+
+    public static void delete(HeroClass cl) {
+        state.put(cl, null);
+    }
+
+    public static class Info {
+        public int depth;
+        public int level;
+        public int version;
+        public boolean challenges;
+    }
 }

@@ -30,49 +30,49 @@ import com.watabou.utils.Random;
 
 public class Tamahawk extends MissileWeapon {
 
-	{
-		image = ItemSpriteSheet.TOMAHAWK;
+    {
+        image = ItemSpriteSheet.TOMAHAWK;
 
-	}
+    }
 
-	@Override
-	public int min(int lvl) {
-		return 4;
-	}
+    public Tamahawk() {
+        this(1);
+    }
 
-	@Override
-	public int max(int lvl) {
-		return 20;
-	}
+    public Tamahawk(int number) {
+        super();
+        quantity = number;
+    }
 
-	@Override
-	public int STRReq(int lvl) {
-		return 17;
-	}
+    @Override
+    public int min(int lvl) {
+        return 4;
+    }
 
-	public Tamahawk() {
-		this( 1 );
-	}
-	
-	public Tamahawk( int number ) {
-		super();
-		quantity = number;
-	}
-	
-	@Override
-	public int proc( Char attacker, Char defender, int damage ) {
-		Buff.affect( defender, Bleeding.class ).set( damage );
-		return super.proc( attacker, defender, damage );
-	}
-	
-	@Override
-	public Item random() {
-		quantity = Random.Int( 5, 12 );
-		return this;
-	}
-	
-	@Override
-	public int price() {
-		return 15 * quantity;
-	}
+    @Override
+    public int max(int lvl) {
+        return 20;
+    }
+
+    @Override
+    public int STRReq(int lvl) {
+        return 17;
+    }
+
+    @Override
+    public int proc(Char attacker, Char defender, int damage) {
+        Buff.affect(defender, Bleeding.class).set(damage);
+        return super.proc(attacker, defender, damage);
+    }
+
+    @Override
+    public Item random() {
+        quantity = Random.Int(5, 12);
+        return this;
+    }
+
+    @Override
+    public int price() {
+        return 15 * quantity;
+    }
 }

@@ -46,135 +46,139 @@ import java.util.HashSet;
 import java.util.List;
 
 public class Mimic extends Mob {
-	
-	private int level;
-	
-	{
-		spriteClass = MimicSprite.class;
 
-		properties.add(Property.DEMONIC);
-	}
-	
-	public ArrayList<Item> items;
-	
-	private static final String LEVEL	= "level";
-	private static final String ITEMS	= "items";
-	
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( ITEMS, items );
-		bundle.put( LEVEL, level );
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		items = new ArrayList<>( (Collection<Item>) ((Collection<?>) bundle.getCollection( ITEMS ) ));
-		adjustStats( bundle.getInt( LEVEL ) );
-		super.restoreFromBundle(bundle);
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( HT / 10, HT / 4 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 9 + level;
-	}
-	
-	public void adjustStats( int level ) {
-		this.level = level;
-		
-		HP = HT = (1 + level) * 6;
-		EXP = 2 + 2 * (level - 1) / 5;
-		defenseSkill = attackSkill( null ) / 2;
-		
-		enemySeen = true;
-	}
-	
-	@Override
-	public void die( Object cause ) {
+    private static final String LEVEL = "level";
+    private static final String ITEMS = "items";
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		super.die( cause );
-		
-		if (items != null) {
-			for (Item item : items) {
-				Dungeon.level.drop( item, pos ).sprite.drop();
-			}
-		}
-	}
-	
-	@Override
-	public boolean reset() {
-		state = WANDERING;
-		return true;
-	}
+    static {
+        IMMUNITIES.add(ScrollOfPsionicBlast.class);
+    }
 
-	public static Mimic spawnAt( int pos, List<Item> items ) {
-		Char ch = Actor.findChar( pos );
-		if (ch != null) {
-			ArrayList<Integer> candidates = new ArrayList<>();
-			for (int n : PathFinder.NEIGHBOURS8) {
-				int cell = pos + n;
-				if ((Level.passable[cell] || Level.avoid[cell]) && Actor.findChar( cell ) == null) {
-					candidates.add( cell );
-				}
-			}
-			if (candidates.size() > 0) {
-				int newPos = Random.element( candidates );
-				Actor.addDelayed( new Pushing( ch, ch.pos, newPos ), -1 );
-				
-				ch.pos = newPos;
-				// FIXME
-				if (ch instanceof Mob) {
-					Dungeon.level.mobPress( (Mob)ch );
-				} else {
-					Dungeon.level.press( newPos, ch );
-				}
-			} else {
-				return null;
-			}
-		}
-		
-		Mimic m = new Mimic();
-		m.items = new ArrayList<>( items );
-		m.adjustStats( Dungeon.depth );
-		m.pos = pos;
-		m.state = m.HUNTING;
-		GameScene.add( m, 1 );
-		
-		m.sprite.turnTo( pos, Dungeon.hero.pos );
-		
-		if (Dungeon.visible[m.pos]) {
-			CellEmitter.get( pos ).burst( Speck.factory( Speck.STAR ), 10 );
-			Sample.INSTANCE.play( Assets.SND_MIMIC );
-		}
+    public ArrayList<Item> items;
+    private int level;
 
-		//generate an extra reward for killing the mimic
-		switch(Random.Int(5)){
-			case 0: case 1:
-				m.items.add(new Gold().random()); break;
-			case 2:
-				m.items.add(Generator.randomArmor().identify()); break;
-			case 3:
-				m.items.add(Generator.randomWeapon().identify()); break;
-			case 4:
-				m.items.add(Generator.random(Generator.Category.RING).identify()); break;
-		}
-		
-		return m;
-	}
-	
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( ScrollOfPsionicBlast.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+    {
+        spriteClass = MimicSprite.class;
+
+        properties.add(Property.DEMONIC);
+    }
+
+    public static Mimic spawnAt(int pos, List<Item> items) {
+        Char ch = Actor.findChar(pos);
+        if (ch != null) {
+            ArrayList<Integer> candidates = new ArrayList<>();
+            for (int n : PathFinder.NEIGHBOURS8) {
+                int cell = pos + n;
+                if ((Level.passable[cell] || Level.avoid[cell]) && Actor.findChar(cell) == null) {
+                    candidates.add(cell);
+                }
+            }
+            if (candidates.size() > 0) {
+                int newPos = Random.element(candidates);
+                Actor.addDelayed(new Pushing(ch, ch.pos, newPos), -1);
+
+                ch.pos = newPos;
+                // FIXME
+                if (ch instanceof Mob) {
+                    Dungeon.level.mobPress((Mob) ch);
+                } else {
+                    Dungeon.level.press(newPos, ch);
+                }
+            } else {
+                return null;
+            }
+        }
+
+        Mimic m = new Mimic();
+        m.items = new ArrayList<>(items);
+        m.adjustStats(Dungeon.depth);
+        m.pos = pos;
+        m.state = m.HUNTING;
+        GameScene.add(m, 1);
+
+        m.sprite.turnTo(pos, Dungeon.hero.pos);
+
+        if (Dungeon.visible[m.pos]) {
+            CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
+            Sample.INSTANCE.play(Assets.SND_MIMIC);
+        }
+
+        //generate an extra reward for killing the mimic
+        switch (Random.Int(5)) {
+            case 0:
+            case 1:
+                m.items.add(new Gold().random());
+                break;
+            case 2:
+                m.items.add(Generator.randomArmor().identify());
+                break;
+            case 3:
+                m.items.add(Generator.randomWeapon().identify());
+                break;
+            case 4:
+                m.items.add(Generator.random(Generator.Category.RING).identify());
+                break;
+        }
+
+        return m;
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(ITEMS, items);
+        bundle.put(LEVEL, level);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        items = new ArrayList<>((Collection<Item>) ((Collection<?>) bundle.getCollection(ITEMS)));
+        adjustStats(bundle.getInt(LEVEL));
+        super.restoreFromBundle(bundle);
+    }
+
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(HT / 10, HT / 4);
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return 9 + level;
+    }
+
+    public void adjustStats(int level) {
+        this.level = level;
+
+        HP = HT = (1 + level) * 6;
+        EXP = 2 + 2 * (level - 1) / 5;
+        defenseSkill = attackSkill(null) / 2;
+
+        enemySeen = true;
+    }
+
+    @Override
+    public void die(Object cause) {
+
+        super.die(cause);
+
+        if (items != null) {
+            for (Item item : items) {
+                Dungeon.level.drop(item, pos).sprite.drop();
+            }
+        }
+    }
+
+    @Override
+    public boolean reset() {
+        state = WANDERING;
+        return true;
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

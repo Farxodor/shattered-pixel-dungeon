@@ -26,22 +26,22 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 public class Bless extends FlavourBuff {
 
-	{
-		type = buffType.POSITIVE;
-	}
+    {
+        type = buffType.POSITIVE;
+    }
 
-	@Override
-	public int icon() {
-		return BuffIndicator.BLESS;
-	}
+    @Override
+    public int icon() {
+        return BuffIndicator.BLESS;
+    }
 
-	@Override
-	public String toString() {
-		return Messages.get(this, "name");
-	}
+    @Override
+    public String toString() {
+        return Messages.get(this, "name");
+    }
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", dispTurns());
-	}
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc", dispTurns());
+    }
 }

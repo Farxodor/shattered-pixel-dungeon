@@ -27,18 +27,18 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 public class Projecting extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing GREY = new ItemSprite.Glowing( 0x888888 );
+    private static ItemSprite.Glowing GREY = new ItemSprite.Glowing(0x888888);
 
-	@Override
-	public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
-		//Does nothing as a proc, instead increases weapon range.
-		//See weapon.reachFactor, and MissileWeapon.throwPos;
-		return damage;
-	}
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        //Does nothing as a proc, instead increases weapon range.
+        //See weapon.reachFactor, and MissileWeapon.throwPos;
+        return damage;
+    }
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return GREY;
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return GREY;
+    }
 
 }

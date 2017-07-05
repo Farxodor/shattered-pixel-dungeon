@@ -27,20 +27,20 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class PotionBandolier extends Bag {
 
-	{
-		image = ItemSpriteSheet.BANDOLIER;
+    {
+        image = ItemSpriteSheet.BANDOLIER;
 
-		size = 12;
-	}
+        size = 12;
+    }
 
-	@Override
-	public boolean grab( Item item ) {
-		return item instanceof Potion;
-	}
+    @Override
+    public boolean grab(Item item) {
+        return item instanceof Potion;
+    }
 
-	@Override
-	public int price() {
-		return 40;
-	}
+    @Override
+    public int price() {
+        return 40;
+    }
 
 }

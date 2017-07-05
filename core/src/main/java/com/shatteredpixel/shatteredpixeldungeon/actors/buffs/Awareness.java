@@ -26,12 +26,12 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class Awareness extends FlavourBuff {
 
-	public static final float DURATION = 2f;
+    public static final float DURATION = 2f;
 
-	@Override
-	public void detach() {
-		super.detach();
-		Dungeon.observe();
-		GameScene.updateFog();
-	}
+    @Override
+    public void detach() {
+        super.detach();
+        Dungeon.observe();
+        GameScene.updateFog();
+    }
 }

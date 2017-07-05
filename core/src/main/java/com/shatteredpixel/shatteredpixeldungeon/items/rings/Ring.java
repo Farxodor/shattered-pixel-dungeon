@@ -41,244 +41,237 @@ import java.util.HashMap;
 
 public class Ring extends KindofMisc {
 
-	private static final int TICKS_TO_KNOW    = 200;
-	
-	protected Buff buff;
-	
-	private static final Class<?>[] rings = {
-		RingOfAccuracy.class,
-		RingOfEvasion.class,
-		RingOfElements.class,
-		RingOfForce.class,
-		RingOfFuror.class,
-		RingOfHaste.class,
-		RingOfMagic.class,
-		RingOfMight.class,
-		RingOfSharpshooting.class,
-		RingOfTenacity.class,
-		RingOfWealth.class,
-	};
+    private static final int TICKS_TO_KNOW = 200;
+    private static final Class<?>[] rings = {
+            RingOfAccuracy.class,
+            RingOfEvasion.class,
+            RingOfElements.class,
+            RingOfForce.class,
+            RingOfFuror.class,
+            RingOfHaste.class,
+            RingOfMagic.class,
+            RingOfMight.class,
+            RingOfSharpshooting.class,
+            RingOfTenacity.class,
+            RingOfWealth.class,
+    };
+    private static final HashMap<String, Integer> gems = new HashMap<String, Integer>() {
+        {
+            put("garnet", ItemSpriteSheet.RING_GARNET);
+            put("ruby", ItemSpriteSheet.RING_RUBY);
+            put("topaz", ItemSpriteSheet.RING_TOPAZ);
+            put("emerald", ItemSpriteSheet.RING_EMERALD);
+            put("onyx", ItemSpriteSheet.RING_ONYX);
+            put("opal", ItemSpriteSheet.RING_OPAL);
+            put("tourmaline", ItemSpriteSheet.RING_TOURMALINE);
+            put("sapphire", ItemSpriteSheet.RING_SAPPHIRE);
+            put("amethyst", ItemSpriteSheet.RING_AMETHYST);
+            put("quartz", ItemSpriteSheet.RING_QUARTZ);
+            put("agate", ItemSpriteSheet.RING_AGATE);
+            put("diamond", ItemSpriteSheet.RING_DIAMOND);
+        }
+    };
+    private static final String UNFAMILIRIARITY = "unfamiliarity";
+    private static ItemStatusHandler<Ring> handler;
+    protected Buff buff;
+    private String gem;
+    private int ticksToKnow = TICKS_TO_KNOW;
 
-	private static final HashMap<String, Integer> gems = new HashMap<String, Integer>() {
-		{
-			put("garnet",ItemSpriteSheet.RING_GARNET);
-			put("ruby",ItemSpriteSheet.RING_RUBY);
-			put("topaz",ItemSpriteSheet.RING_TOPAZ);
-			put("emerald",ItemSpriteSheet.RING_EMERALD);
-			put("onyx",ItemSpriteSheet.RING_ONYX);
-			put("opal",ItemSpriteSheet.RING_OPAL);
-			put("tourmaline",ItemSpriteSheet.RING_TOURMALINE);
-			put("sapphire",ItemSpriteSheet.RING_SAPPHIRE);
-			put("amethyst",ItemSpriteSheet.RING_AMETHYST);
-			put("quartz",ItemSpriteSheet.RING_QUARTZ);
-			put("agate",ItemSpriteSheet.RING_AGATE);
-			put("diamond",ItemSpriteSheet.RING_DIAMOND);
-		}
-	};
-	
-	private static ItemStatusHandler<Ring> handler;
-	
-	private String gem;
-	
-	private int ticksToKnow = TICKS_TO_KNOW;
-	
-	@SuppressWarnings("unchecked")
-	public static void initGems() {
-		handler = new ItemStatusHandler<>( (Class<? extends Ring>[])rings, gems );
-	}
-	
-	public static void save( Bundle bundle ) {
-		handler.save( bundle );
-	}
+    public Ring() {
+        super();
+        reset();
+    }
 
-	public static void saveSelectively( Bundle bundle, ArrayList<Item> items ) {
-		handler.saveSelectively( bundle, items );
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static void restore( Bundle bundle ) {
-		handler = new ItemStatusHandler<>( (Class<? extends Ring>[])rings, gems, bundle );
-	}
-	
-	public Ring() {
-		super();
-		reset();
-	}
-	
-	public void reset() {
-		super.reset();
-		image	= handler.image( this );
-		gem		= handler.label( this );
-	}
-	
-	public void activate( Char ch ) {
-		buff = buff();
-		buff.attachTo( ch );
-	}
+    @SuppressWarnings("unchecked")
+    public static void initGems() {
+        handler = new ItemStatusHandler<>((Class<? extends Ring>[]) rings, gems);
+    }
 
-	@Override
-	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
-		if (super.doUnequip( hero, collect, single )) {
+    public static void save(Bundle bundle) {
+        handler.save(bundle);
+    }
 
-			hero.remove( buff );
-			buff = null;
+    public static void saveSelectively(Bundle bundle, ArrayList<Item> items) {
+        handler.saveSelectively(bundle, items);
+    }
 
-			return true;
+    @SuppressWarnings("unchecked")
+    public static void restore(Bundle bundle) {
+        handler = new ItemStatusHandler<>((Class<? extends Ring>[]) rings, gems, bundle);
+    }
 
-		} else {
+    public static boolean allKnown() {
+        return handler.known().size() == rings.length - 2;
+    }
 
-			return false;
+    public static int getBonus(Char target, Class<? extends RingBuff> type) {
+        int bonus = 0;
+        for (RingBuff buff : target.buffs(type)) {
+            bonus += buff.level();
+        }
+        return bonus;
+    }
 
-		}
-	}
-	
-	public boolean isKnown() {
-		return handler.isKnown( this );
-	}
-	
-	protected void setKnown() {
-		if (!isKnown()) {
-			handler.know( this );
-		}
-		
-		Badges.validateAllRingsIdentified();
-	}
-	
-	@Override
-	public String name() {
-		return isKnown() ? super.name() : Messages.get(Ring.class, gem);
-	}
-	
-	@Override
-	public String info() {
+    public void reset() {
+        super.reset();
+        image = handler.image(this);
+        gem = handler.label(this);
+    }
 
-		String desc = isKnown()? desc() : Messages.get(this, "unknown_desc");
+    public void activate(Char ch) {
+        buff = buff();
+        buff.attachTo(ch);
+    }
 
-		if (cursed && isEquipped( Dungeon.hero )) {
-			
-			desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
-			
-		} else if (cursed && cursedKnown) {
+    @Override
+    public boolean doUnequip(Hero hero, boolean collect, boolean single) {
+        if (super.doUnequip(hero, collect, single)) {
 
-			desc += "\n\n" + Messages.get(Ring.class, "curse_known");
+            hero.remove(buff);
+            buff = null;
 
-		}
+            return true;
 
-		return desc;
-	}
-	
-	@Override
-	public boolean isIdentified() {
-		return super.isIdentified() && isKnown();
-	}
-	
-	@Override
-	public Item identify() {
-		setKnown();
-		return super.identify();
-	}
-	
-	@Override
-	public Item random() {
-		int n = 1;
-		if (Random.Int(3) == 0) {
-			n++;
-			if (Random.Int(5) == 0){
-				n++;
-			}
-		}
+        } else {
 
-		if (Random.Float() < 0.3f) {
-			level(-n);
-			cursed = true;
-		} else
-			level(n);
+            return false;
 
-		return this;
-	}
-	
-	public static boolean allKnown() {
-		return handler.known().size() == rings.length - 2;
-	}
-	
-	@Override
-	public int price() {
-		int price = 75;
-		if (cursed && cursedKnown) {
-			price /= 2;
-		}
-		if (levelKnown) {
-			if (level() > 0) {
-				price *= (level() + 1);
-			} else if (level() < 0) {
-				price /= (1 - level());
-			}
-		}
-		if (price < 1) {
-			price = 1;
-		}
-		return price;
-	}
-	
-	protected RingBuff buff() {
-		return null;
-	}
+        }
+    }
 
-	private static final String UNFAMILIRIARITY    = "unfamiliarity";
+    public boolean isKnown() {
+        return handler.isKnown(this);
+    }
 
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( UNFAMILIRIARITY, ticksToKnow );
-	}
+    protected void setKnown() {
+        if (!isKnown()) {
+            handler.know(this);
+        }
 
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		if ((ticksToKnow = bundle.getInt( UNFAMILIRIARITY )) == 0) {
-			ticksToKnow = TICKS_TO_KNOW;
-		}
-	}
+        Badges.validateAllRingsIdentified();
+    }
 
-	public static int getBonus(Char target, Class<?extends RingBuff> type){
-		int bonus = 0;
-		for (RingBuff buff : target.buffs(type)) {
-			bonus += buff.level();
-		}
-		return bonus;
-	}
+    @Override
+    public String name() {
+        return isKnown() ? super.name() : Messages.get(Ring.class, gem);
+    }
 
-	public class RingBuff extends Buff {
-		
-		@Override
-		public boolean attachTo( Char target ) {
+    @Override
+    public String info() {
 
-			if (target instanceof Hero && ((Hero)target).heroClass == HeroClass.ROGUE && !isKnown()) {
-				setKnown();
-				GLog.i( Messages.get(Ring.class, "known", name()) );
-				Badges.validateItemLevelAquired( Ring.this );
-			}
-			
-			return super.attachTo(target);
-		}
-		
-		@Override
-		public boolean act() {
-			
-			if (!isIdentified() && --ticksToKnow <= 0) {
-				identify();
-				GLog.w( Messages.get(Ring.class, "identify", Ring.this.toString()) );
-				Badges.validateItemLevelAquired( Ring.this );
-			}
-			
-			spend( TICK );
-			
-			return true;
-		}
+        String desc = isKnown() ? desc() : Messages.get(this, "unknown_desc");
 
-		public int level(){
-			return Ring.this.level();
-		}
+        if (cursed && isEquipped(Dungeon.hero)) {
 
-	}
+            desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
+
+        } else if (cursed && cursedKnown) {
+
+            desc += "\n\n" + Messages.get(Ring.class, "curse_known");
+
+        }
+
+        return desc;
+    }
+
+    @Override
+    public boolean isIdentified() {
+        return super.isIdentified() && isKnown();
+    }
+
+    @Override
+    public Item identify() {
+        setKnown();
+        return super.identify();
+    }
+
+    @Override
+    public Item random() {
+        int n = 1;
+        if (Random.Int(3) == 0) {
+            n++;
+            if (Random.Int(5) == 0) {
+                n++;
+            }
+        }
+
+        if (Random.Float() < 0.3f) {
+            level(-n);
+            cursed = true;
+        } else
+            level(n);
+
+        return this;
+    }
+
+    @Override
+    public int price() {
+        int price = 75;
+        if (cursed && cursedKnown) {
+            price /= 2;
+        }
+        if (levelKnown) {
+            if (level() > 0) {
+                price *= (level() + 1);
+            } else if (level() < 0) {
+                price /= (1 - level());
+            }
+        }
+        if (price < 1) {
+            price = 1;
+        }
+        return price;
+    }
+
+    protected RingBuff buff() {
+        return null;
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(UNFAMILIRIARITY, ticksToKnow);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if ((ticksToKnow = bundle.getInt(UNFAMILIRIARITY)) == 0) {
+            ticksToKnow = TICKS_TO_KNOW;
+        }
+    }
+
+    public class RingBuff extends Buff {
+
+        @Override
+        public boolean attachTo(Char target) {
+
+            if (target instanceof Hero && ((Hero) target).heroClass == HeroClass.ROGUE && !isKnown()) {
+                setKnown();
+                GLog.i(Messages.get(Ring.class, "known", name()));
+                Badges.validateItemLevelAquired(Ring.this);
+            }
+
+            return super.attachTo(target);
+        }
+
+        @Override
+        public boolean act() {
+
+            if (!isIdentified() && --ticksToKnow <= 0) {
+                identify();
+                GLog.w(Messages.get(Ring.class, "identify", Ring.this.toString()));
+                Badges.validateItemLevelAquired(Ring.this);
+            }
+
+            spend(TICK);
+
+            return true;
+        }
+
+        public int level() {
+            return Ring.this.level();
+        }
+
+    }
 }

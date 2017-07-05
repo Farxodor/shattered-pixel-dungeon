@@ -27,17 +27,17 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 public class Stone extends Armor.Glyph {
 
-	private static ItemSprite.Glowing GREY = new ItemSprite.Glowing( 0x222222 );
+    private static ItemSprite.Glowing GREY = new ItemSprite.Glowing(0x222222);
 
-	@Override
-	public int proc(Armor armor, Char attacker, Char defender, int damage) {
-		//no proc effect, see armor.DrMin and the end of hero.getCloser
-		return damage;
-	}
+    @Override
+    public int proc(Armor armor, Char attacker, Char defender, int damage) {
+        //no proc effect, see armor.DrMin and the end of hero.getCloser
+        return damage;
+    }
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return GREY;
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return GREY;
+    }
 
 }

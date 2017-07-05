@@ -40,85 +40,84 @@ import com.watabou.utils.Random;
 
 public class GnollTrickster extends Gnoll {
 
-	{
-		spriteClass = GnollTricksterSprite.class;
+    private static final String COMBO = "combo";
+    private int combo = 0;
 
-		HP = HT = 20;
-		defenseSkill = 5;
+    {
+        spriteClass = GnollTricksterSprite.class;
 
-		EXP = 5;
+        HP = HT = 20;
+        defenseSkill = 5;
 
-		state = WANDERING;
+        EXP = 5;
 
-		loot = Generator.random(CurareDart.class);
-		lootChance = 1f;
+        state = WANDERING;
 
-		properties.add(Property.MINIBOSS);
-	}
+        loot = Generator.random(CurareDart.class);
+        lootChance = 1f;
 
-	private int combo = 0;
+        properties.add(Property.MINIBOSS);
+    }
 
-	@Override
-	public int attackSkill( Char target ) {
-		return 16;
-	}
+    @Override
+    public int attackSkill(Char target) {
+        return 16;
+    }
 
-	@Override
-	protected boolean canAttack( Char enemy ) {
-		Ballistica attack = new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE);
-		return !Dungeon.level.adjacent(pos, enemy.pos) && attack.collisionPos == enemy.pos;
-	}
+    @Override
+    protected boolean canAttack(Char enemy) {
+        Ballistica attack = new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE);
+        return !Dungeon.level.adjacent(pos, enemy.pos) && attack.collisionPos == enemy.pos;
+    }
 
-	@Override
-	public int attackProc( Char enemy, int damage ) {
-		//The gnoll's attacks get more severe the more the player lets it hit them
-		combo++;
-		int effect = Random.Int(4)+combo;
+    @Override
+    public int attackProc(Char enemy, int damage) {
+        //The gnoll's attacks get more severe the more the player lets it hit them
+        combo++;
+        int effect = Random.Int(4) + combo;
 
-		if (effect > 2) {
+        if (effect > 2) {
 
-			if (effect >=6 && enemy.buff(Burning.class) == null){
+            if (effect >= 6 && enemy.buff(Burning.class) == null) {
 
-				if (Level.flamable[enemy.pos])
-					GameScene.add(Blob.seed(enemy.pos, 4, Fire.class));
-				Buff.affect(enemy, Burning.class).reignite( enemy );
+                if (Level.flamable[enemy.pos])
+                    GameScene.add(Blob.seed(enemy.pos, 4, Fire.class));
+                Buff.affect(enemy, Burning.class).reignite(enemy);
 
-			} else
-				Buff.affect( enemy, Poison.class).set((effect-2) * Poison.durationFactor(enemy));
+            } else
+                Buff.affect(enemy, Poison.class).set((effect - 2) * Poison.durationFactor(enemy));
 
-		}
-		return damage;
-	}
+        }
+        return damage;
+    }
 
-	@Override
-	protected boolean getCloser( int target ) {
-		combo = 0; //if he's moving, he isn't attacking, reset combo.
-		if (state == HUNTING) {
-			return enemySeen && getFurther( target );
-		} else {
-			return super.getCloser( target );
-		}
-	}
+    @Override
+    protected boolean getCloser(int target) {
+        combo = 0; //if he's moving, he isn't attacking, reset combo.
+        if (state == HUNTING) {
+            return enemySeen && getFurther(target);
+        } else {
+            return super.getCloser(target);
+        }
+    }
 
-	@Override
-	public void die( Object cause ) {
-		super.die( cause );
+    @Override
+    public void die(Object cause) {
+        super.die(cause);
 
-		Ghost.Quest.process();
-	}
+        Ghost.Quest.process();
+    }
 
-	private static final String COMBO = "combo";
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(COMBO, combo);
+    }
 
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle(bundle);
-		bundle.put(COMBO, combo);
-	}
-
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		combo = bundle.getInt( COMBO );
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        combo = bundle.getInt(COMBO);
+    }
 
 }

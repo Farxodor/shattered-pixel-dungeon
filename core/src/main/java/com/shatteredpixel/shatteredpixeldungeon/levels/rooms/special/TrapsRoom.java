@@ -50,117 +50,120 @@ import com.watabou.utils.Random;
 
 public class TrapsRoom extends SpecialRoom {
 
-	public void paint( Level level ) {
-		 
-		Painter.fill( level, this, Terrain.WALL );
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Trap>[][] levelTraps = new Class[][]{
+            //sewers
+            {ToxicTrap.class, TeleportationTrap.class, FlockTrap.class},
+            //prison
+            {ConfusionTrap.class, ExplosiveTrap.class, ParalyticTrap.class},
+            //caves
+            {BlazingTrap.class, VenomTrap.class, ExplosiveTrap.class},
+            //city
+            {WarpingTrap.class, VenomTrap.class, DisintegrationTrap.class},
+            //halls, muahahahaha
+            {GrimTrap.class}
+    };
 
-		Class<? extends Trap> trapClass;
-		switch (Random.Int(5)){
-			case 0: default:
-				trapClass = SpearTrap.class;
-				break;
-			case 1:
-				trapClass = !Dungeon.bossLevel(Dungeon.depth + 1)? null : SummoningTrap.class;
-				break;
-			case 2: case 3: case 4:
-				trapClass = Random.oneOf(levelTraps[Dungeon.depth/5]);
-				break;
-		}
+    private static Item prize(Level level) {
 
-		if (trapClass == null){
-			Painter.fill(level, this, 1, Terrain.CHASM);
-		} else {
-			Painter.fill(level, this, 1, Terrain.TRAP);
-		}
-		
-		Door door = entrance();
-		door.set( Door.Type.REGULAR );
-		
-		int lastRow = level.map[left + 1 + (top + 1) * level.width()] == Terrain.CHASM ? Terrain.CHASM : Terrain.EMPTY;
+        Item prize;
 
-		int x = -1;
-		int y = -1;
-		if (door.x == left) {
-			x = right - 1;
-			y = top + height() / 2;
-			Painter.fill( level, x, top + 1, 1, height() - 2 , lastRow );
-		} else if (door.x == right) {
-			x = left + 1;
-			y = top + height() / 2;
-			Painter.fill( level, x, top + 1, 1, height() - 2 , lastRow );
-		} else if (door.y == top) {
-			x = left + width() / 2;
-			y = bottom - 1;
-			Painter.fill( level, left + 1, y, width() - 2, 1 , lastRow );
-		} else if (door.y == bottom) {
-			x = left + width() / 2;
-			y = top + 1;
-			Painter.fill( level, left + 1, y, width() - 2, 1 , lastRow );
-		}
+        if (Random.Int(3) != 0) {
+            prize = level.findPrizeItem();
+            if (prize != null)
+                return prize;
+        }
 
-		for(Point p : getPoints()) {
-			int cell = level.pointToCell(p);
-			if (level.map[cell] == Terrain.TRAP){
-				try {
-					level.setTrap(trapClass.newInstance().reveal(), cell);
-				} catch (Exception e) {
-					ShatteredPixelDungeon.reportException(e);
-				}
-			}
-		}
-		
-		int pos = x + y * level.width();
-		if (Random.Int( 3 ) == 0) {
-			if (lastRow == Terrain.CHASM) {
-				Painter.set( level, pos, Terrain.EMPTY );
-			}
-			level.drop( prize( level ), pos ).type = Heap.Type.CHEST;
-		} else {
-			Painter.set( level, pos, Terrain.PEDESTAL );
-			level.drop( prize( level ), pos );
-		}
-		
-		level.addItemToSpawn( new PotionOfLevitation() );
-	}
-	
-	private static Item prize( Level level ) {
+        //1 floor set higher in probability, never cursed
+        do {
+            if (Random.Int(2) == 0) {
+                prize = Generator.randomWeapon((Dungeon.depth / 5) + 1);
+            } else {
+                prize = Generator.randomArmor((Dungeon.depth / 5) + 1);
+            }
+        } while (prize.cursed);
 
-		Item prize;
+        //33% chance for an extra update.
+        if (!(prize instanceof MissileWeapon) && Random.Int(3) == 0) {
+            prize.upgrade();
+        }
 
-		if (Random.Int(3) != 0){
-			prize = level.findPrizeItem();
-			if (prize != null)
-				return prize;
-		}
-		
-		//1 floor set higher in probability, never cursed
-		do {
-			if (Random.Int(2) == 0) {
-				prize = Generator.randomWeapon((Dungeon.depth / 5) + 1);
-			} else {
-				prize = Generator.randomArmor((Dungeon.depth / 5) + 1);
-			}
-		} while (prize.cursed);
+        return prize;
+    }
 
-		//33% chance for an extra update.
-		if (!(prize instanceof MissileWeapon) && Random.Int(3) == 0){
-			prize.upgrade();
-		}
-		
-		return prize;
-	}
+    public void paint(Level level) {
 
-	@SuppressWarnings("unchecked")
-	private static Class<?extends Trap>[][] levelTraps = new Class[][]{
-			//sewers
-			{ToxicTrap.class, TeleportationTrap.class, FlockTrap.class},
-			//prison
-			{ConfusionTrap.class, ExplosiveTrap.class, ParalyticTrap.class},
-			//caves
-			{BlazingTrap.class, VenomTrap.class, ExplosiveTrap.class},
-			//city
-			{WarpingTrap.class, VenomTrap.class, DisintegrationTrap.class},
-			//halls, muahahahaha
-			{GrimTrap.class}
-	};
+        Painter.fill(level, this, Terrain.WALL);
+
+        Class<? extends Trap> trapClass;
+        switch (Random.Int(5)) {
+            case 0:
+            default:
+                trapClass = SpearTrap.class;
+                break;
+            case 1:
+                trapClass = !Dungeon.bossLevel(Dungeon.depth + 1) ? null : SummoningTrap.class;
+                break;
+            case 2:
+            case 3:
+            case 4:
+                trapClass = Random.oneOf(levelTraps[Dungeon.depth / 5]);
+                break;
+        }
+
+        if (trapClass == null) {
+            Painter.fill(level, this, 1, Terrain.CHASM);
+        } else {
+            Painter.fill(level, this, 1, Terrain.TRAP);
+        }
+
+        Door door = entrance();
+        door.set(Door.Type.REGULAR);
+
+        int lastRow = level.map[left + 1 + (top + 1) * level.width()] == Terrain.CHASM ? Terrain.CHASM : Terrain.EMPTY;
+
+        int x = -1;
+        int y = -1;
+        if (door.x == left) {
+            x = right - 1;
+            y = top + height() / 2;
+            Painter.fill(level, x, top + 1, 1, height() - 2, lastRow);
+        } else if (door.x == right) {
+            x = left + 1;
+            y = top + height() / 2;
+            Painter.fill(level, x, top + 1, 1, height() - 2, lastRow);
+        } else if (door.y == top) {
+            x = left + width() / 2;
+            y = bottom - 1;
+            Painter.fill(level, left + 1, y, width() - 2, 1, lastRow);
+        } else if (door.y == bottom) {
+            x = left + width() / 2;
+            y = top + 1;
+            Painter.fill(level, left + 1, y, width() - 2, 1, lastRow);
+        }
+
+        for (Point p : getPoints()) {
+            int cell = level.pointToCell(p);
+            if (level.map[cell] == Terrain.TRAP) {
+                try {
+                    level.setTrap(trapClass.newInstance().reveal(), cell);
+                } catch (Exception e) {
+                    ShatteredPixelDungeon.reportException(e);
+                }
+            }
+        }
+
+        int pos = x + y * level.width();
+        if (Random.Int(3) == 0) {
+            if (lastRow == Terrain.CHASM) {
+                Painter.set(level, pos, Terrain.EMPTY);
+            }
+            level.drop(prize(level), pos).type = Heap.Type.CHEST;
+        } else {
+            Painter.set(level, pos, Terrain.PEDESTAL);
+            level.drop(prize(level), pos);
+        }
+
+        level.addItemToSpawn(new PotionOfLevitation());
+    }
 }

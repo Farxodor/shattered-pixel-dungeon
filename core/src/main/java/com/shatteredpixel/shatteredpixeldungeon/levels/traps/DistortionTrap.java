@@ -30,28 +30,28 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.watabou.noosa.Game;
 
-public class DistortionTrap extends Trap{
+public class DistortionTrap extends Trap {
 
-	{
-		color = TEAL;
-		shape = LARGE_DOT;
-	}
+    {
+        color = TEAL;
+        shape = LARGE_DOT;
+    }
 
-	@Override
-	public void activate() {
-		InterlevelScene.returnDepth = Dungeon.depth;
-		Belongings belongings = Dungeon.hero.belongings;
-		belongings.ironKeys[Dungeon.depth] = 0;
-		belongings.specialKeys[Dungeon.depth] = 0;
-		for (Item i : belongings){
-			if (i instanceof LloydsBeacon && ((LloydsBeacon) i).returnDepth == Dungeon.depth)
-					((LloydsBeacon) i).returnDepth = -1;
-		}
+    @Override
+    public void activate() {
+        InterlevelScene.returnDepth = Dungeon.depth;
+        Belongings belongings = Dungeon.hero.belongings;
+        belongings.ironKeys[Dungeon.depth] = 0;
+        belongings.specialKeys[Dungeon.depth] = 0;
+        for (Item i : belongings) {
+            if (i instanceof LloydsBeacon && ((LloydsBeacon) i).returnDepth == Dungeon.depth)
+                ((LloydsBeacon) i).returnDepth = -1;
+        }
 
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] ))
-			if (mob instanceof DriedRose.GhostHero) mob.destroy();
+        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0]))
+            if (mob instanceof DriedRose.GhostHero) mob.destroy();
 
-		InterlevelScene.mode = InterlevelScene.Mode.RESET;
-		Game.switchScene(InterlevelScene.class);
-	}
+        InterlevelScene.mode = InterlevelScene.Mode.RESET;
+        Game.switchScene(InterlevelScene.class);
+    }
 }

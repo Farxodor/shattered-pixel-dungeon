@@ -36,95 +36,92 @@ import java.util.ArrayList;
 
 public class Ankh extends Item {
 
-	public static final String AC_BLESS = "BLESS";
+    public static final String AC_BLESS = "BLESS";
+    private static final Glowing WHITE = new Glowing(0xFFFFCC);
+    private static final String BLESSED = "blessed";
+    private Boolean blessed = false;
 
-	{
-		image = ItemSpriteSheet.ANKH;
+    {
+        image = ItemSpriteSheet.ANKH;
 
-		//You tell the ankh no, don't revive me, and then it comes back to revive you again in another run.
-		//I'm not sure if that's enthusiasm or passive-aggression.
-		bones = true;
-	}
+        //You tell the ankh no, don't revive me, and then it comes back to revive you again in another run.
+        //I'm not sure if that's enthusiasm or passive-aggression.
+        bones = true;
+    }
 
-	private Boolean blessed = false;
-	
-	@Override
-	public boolean isUpgradable() {
-		return false;
-	}
-	
-	@Override
-	public boolean isIdentified() {
-		return true;
-	}
+    @Override
+    public boolean isUpgradable() {
+        return false;
+    }
 
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions(hero);
-		DewVial vial = hero.belongings.getItem(DewVial.class);
-		if (vial != null && vial.isFull() && !blessed)
-			actions.add( AC_BLESS );
-		return actions;
-	}
+    @Override
+    public boolean isIdentified() {
+        return true;
+    }
 
-	@Override
-	public void execute( final Hero hero, String action ) {
+    @Override
+    public ArrayList<String> actions(Hero hero) {
+        ArrayList<String> actions = super.actions(hero);
+        DewVial vial = hero.belongings.getItem(DewVial.class);
+        if (vial != null && vial.isFull() && !blessed)
+            actions.add(AC_BLESS);
+        return actions;
+    }
 
-		super.execute( hero, action );
+    @Override
+    public void execute(final Hero hero, String action) {
 
-		if (action.equals( AC_BLESS )) {
+        super.execute(hero, action);
 
-			DewVial vial = hero.belongings.getItem(DewVial.class);
-			if (vial != null){
-				blessed = true;
-				vial.empty();
-				GLog.p( Messages.get(this, "bless") );
-				hero.spend( 1f );
-				hero.busy();
+        if (action.equals(AC_BLESS)) {
+
+            DewVial vial = hero.belongings.getItem(DewVial.class);
+            if (vial != null) {
+                blessed = true;
+                vial.empty();
+                GLog.p(Messages.get(this, "bless"));
+                hero.spend(1f);
+                hero.busy();
 
 
-				Sample.INSTANCE.play( Assets.SND_DRINK );
-				CellEmitter.get(hero.pos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
-				hero.sprite.operate( hero.pos );
-			}
-		}
-	}
-	
-	@Override
-	public String desc() {
-		if (blessed)
-			return Messages.get(this, "desc_blessed");
-		else
-			return super.desc();
-	}
+                Sample.INSTANCE.play(Assets.SND_DRINK);
+                CellEmitter.get(hero.pos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
+                hero.sprite.operate(hero.pos);
+            }
+        }
+    }
 
-	public Boolean isBlessed(){
-		return blessed;
-	}
+    @Override
+    public String desc() {
+        if (blessed)
+            return Messages.get(this, "desc_blessed");
+        else
+            return super.desc();
+    }
 
-	private static final Glowing WHITE = new Glowing( 0xFFFFCC );
+    public Boolean isBlessed() {
+        return blessed;
+    }
 
-	@Override
-	public Glowing glowing() {
-		return isBlessed() ? WHITE : null;
-	}
+    @Override
+    public Glowing glowing() {
+        return isBlessed() ? WHITE : null;
+    }
 
-	private static final String BLESSED = "blessed";
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(BLESSED, blessed);
+    }
 
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( BLESSED, blessed );
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        blessed = bundle.getBoolean(BLESSED);
+    }
 
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		blessed	= bundle.getBoolean( BLESSED );
-	}
-	
-	@Override
-	public int price() {
-		return 50 * quantity;
-	}
+    @Override
+    public int price() {
+        return 50 * quantity;
+    }
 }

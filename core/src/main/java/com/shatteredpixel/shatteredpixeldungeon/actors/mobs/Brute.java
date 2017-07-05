@@ -35,66 +35,67 @@ import com.watabou.utils.Random;
 import java.util.HashSet;
 
 public class Brute extends Mob {
-	
-	{
-		spriteClass = BruteSprite.class;
-		
-		HP = HT = 40;
-		defenseSkill = 15;
-		
-		EXP = 8;
-		maxLvl = 15;
-		
-		loot = Gold.class;
-		lootChance = 0.5f;
-	}
-	
-	private boolean enraged = false;
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		enraged = HP < HT / 4;
-	}
-	
-	@Override
-	public int damageRoll() {
-		return enraged ?
-			Random.NormalIntRange( 15, 45 ) :
-			Random.NormalIntRange( 6, 26 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 20;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 8);
-	}
-	
-	@Override
-	public void damage( int dmg, Object src ) {
-		super.damage( dmg, src );
-		
-		if (isAlive() && !enraged && HP < HT / 4) {
-			enraged = true;
-			spend( TICK );
-			if (Dungeon.visible[pos]) {
-				GLog.w( Messages.get(this, "enraged_text") );
-				sprite.showStatus( CharSprite.NEGATIVE, Messages.get(this, "enraged") );
-			}
-		}
-	}
-	
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( Terror.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+
+    static {
+        IMMUNITIES.add(Terror.class);
+    }
+
+    private boolean enraged = false;
+
+    {
+        spriteClass = BruteSprite.class;
+
+        HP = HT = 40;
+        defenseSkill = 15;
+
+        EXP = 8;
+        maxLvl = 15;
+
+        loot = Gold.class;
+        lootChance = 0.5f;
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        enraged = HP < HT / 4;
+    }
+
+    @Override
+    public int damageRoll() {
+        return enraged ?
+                Random.NormalIntRange(15, 45) :
+                Random.NormalIntRange(6, 26);
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return 20;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 8);
+    }
+
+    @Override
+    public void damage(int dmg, Object src) {
+        super.damage(dmg, src);
+
+        if (isAlive() && !enraged && HP < HT / 4) {
+            enraged = true;
+            spend(TICK);
+            if (Dungeon.visible[pos]) {
+                GLog.w(Messages.get(this, "enraged_text"));
+                sprite.showStatus(CharSprite.NEGATIVE, Messages.get(this, "enraged"));
+            }
+        }
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

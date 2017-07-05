@@ -29,22 +29,22 @@ import com.watabou.utils.Random;
 
 public class Lucky extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing GREEN = new ItemSprite.Glowing( 0x00FF00 );
-	
-	@Override
-	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		int level = Math.max( 0, weapon.level() );
+    private static ItemSprite.Glowing GREEN = new ItemSprite.Glowing(0x00FF00);
 
-		if (Random.Int(100) < (60 + level)){
-			return 2*damage;
-		} else {
-			return 0;
-		}
-		
-	}
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        int level = Math.max(0, weapon.level());
 
-	@Override
-	public Glowing glowing() {
-		return GREEN;
-	}
+        if (Random.Int(100) < (60 + level)) {
+            return 2 * damage;
+        } else {
+            return 0;
+        }
+
+    }
+
+    @Override
+    public Glowing glowing() {
+        return GREEN;
+    }
 }

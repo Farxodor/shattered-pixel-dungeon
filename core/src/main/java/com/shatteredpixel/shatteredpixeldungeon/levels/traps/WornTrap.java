@@ -28,20 +28,20 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class WornTrap extends Trap {
 
-	{
-		color = BLACK;
-		shape = DOTS;
-	}
+    {
+        color = BLACK;
+        shape = DOTS;
+    }
 
-	@Override
-	public Trap hide() {
-		//this one can't be hidden
-		return reveal();
-	}
+    @Override
+    public Trap hide() {
+        //this one can't be hidden
+        return reveal();
+    }
 
-	@Override
-	public void activate() {
-		CellEmitter.get(pos).burst(Speck.factory(Speck.STEAM), 6);
-		GLog.i( Messages.get(this, "nothing") );
-	}
+    @Override
+    public void activate() {
+        CellEmitter.get(pos).burst(Speck.factory(Speck.STEAM), 6);
+        GLog.i(Messages.get(this, "nothing"));
+    }
 }

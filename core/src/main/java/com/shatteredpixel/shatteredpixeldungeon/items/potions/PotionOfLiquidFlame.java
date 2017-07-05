@@ -35,37 +35,37 @@ import com.watabou.utils.PathFinder;
 
 public class PotionOfLiquidFlame extends Potion {
 
-	{
-		initials = 5;
-	}
+    {
+        initials = 5;
+    }
 
-	@Override
-	public void shatter( int cell ) {
+    @Override
+    public void shatter(int cell) {
 
-		if (Dungeon.visible[cell]) {
-			setKnown();
+        if (Dungeon.visible[cell]) {
+            setKnown();
 
-			splash( cell );
-			Sample.INSTANCE.play( Assets.SND_SHATTER );
-		}
+            splash(cell);
+            Sample.INSTANCE.play(Assets.SND_SHATTER);
+        }
 
-		for (int offset : PathFinder.NEIGHBOURS9){
-			if (Level.flamable[cell+offset]
-					|| Actor.findChar(cell+offset) != null
-					|| Dungeon.level.heaps.get(cell+offset) != null) {
+        for (int offset : PathFinder.NEIGHBOURS9) {
+            if (Level.flamable[cell + offset]
+                    || Actor.findChar(cell + offset) != null
+                    || Dungeon.level.heaps.get(cell + offset) != null) {
 
-				GameScene.add(Blob.seed(cell + offset, 2, Fire.class));
+                GameScene.add(Blob.seed(cell + offset, 2, Fire.class));
 
-			} else {
+            } else {
 
-				CellEmitter.get(cell+offset).burst(FlameParticle.FACTORY, 2);
+                CellEmitter.get(cell + offset).burst(FlameParticle.FACTORY, 2);
 
-			}
-		}
-	}
-	
-	@Override
-	public int price() {
-		return isKnown() ? 30 * quantity : super.price();
-	}
+            }
+        }
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 30 * quantity : super.price();
+    }
 }

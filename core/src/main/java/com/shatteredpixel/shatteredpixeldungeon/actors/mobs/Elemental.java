@@ -38,73 +38,74 @@ import java.util.HashSet;
 
 public class Elemental extends Mob {
 
-	{
-		spriteClass = ElementalSprite.class;
-		
-		HP = HT = 65;
-		defenseSkill = 20;
-		
-		EXP = 10;
-		maxLvl = 20;
-		
-		flying = true;
-		
-		loot = new PotionOfLiquidFlame();
-		lootChance = 0.1f;
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		properties.add(Property.DEMONIC);
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( 16, 26 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 25;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 5);
-	}
-	
-	@Override
-	public int attackProc( Char enemy, int damage ) {
-		if (Random.Int( 2 ) == 0) {
-			Buff.affect( enemy, Burning.class ).reignite( enemy );
-		}
-		
-		return damage;
-	}
-	
-	@Override
-	public void add( Buff buff ) {
-		if (buff instanceof Burning) {
-			if (HP < HT) {
-				HP++;
-				sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
-			}
-		} else if (buff instanceof Frost || buff instanceof Chill) {
-				if (Level.water[this.pos])
-					damage( Random.NormalIntRange( HT / 2, HT ), buff );
-				else
-					damage( Random.NormalIntRange( 1, HT * 2 / 3 ), buff );
-		} else {
-			super.add( buff );
-		}
-	}
-	
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( Burning.class );
-		IMMUNITIES.add( Blazing.class );
-		IMMUNITIES.add( WandOfFireblast.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+    static {
+        IMMUNITIES.add(Burning.class);
+        IMMUNITIES.add(Blazing.class);
+        IMMUNITIES.add(WandOfFireblast.class);
+    }
+
+    {
+        spriteClass = ElementalSprite.class;
+
+        HP = HT = 65;
+        defenseSkill = 20;
+
+        EXP = 10;
+        maxLvl = 20;
+
+        flying = true;
+
+        loot = new PotionOfLiquidFlame();
+        lootChance = 0.1f;
+
+        properties.add(Property.DEMONIC);
+    }
+
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(16, 26);
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return 25;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 5);
+    }
+
+    @Override
+    public int attackProc(Char enemy, int damage) {
+        if (Random.Int(2) == 0) {
+            Buff.affect(enemy, Burning.class).reignite(enemy);
+        }
+
+        return damage;
+    }
+
+    @Override
+    public void add(Buff buff) {
+        if (buff instanceof Burning) {
+            if (HP < HT) {
+                HP++;
+                sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+            }
+        } else if (buff instanceof Frost || buff instanceof Chill) {
+            if (Level.water[this.pos])
+                damage(Random.NormalIntRange(HT / 2, HT), buff);
+            else
+                damage(Random.NormalIntRange(1, HT * 2 / 3), buff);
+        } else {
+            super.add(buff);
+        }
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

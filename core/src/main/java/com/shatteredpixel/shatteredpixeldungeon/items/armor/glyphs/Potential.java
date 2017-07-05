@@ -33,35 +33,35 @@ import com.watabou.noosa.Camera;
 import com.watabou.utils.Random;
 
 public class Potential extends Glyph {
-	
-	private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing( 0xFFFFFF, 0.6f );
-	
-	@Override
-	public int proc( Armor armor, Char attacker, Char defender, int damage) {
 
-		int level = Math.max( 0, armor.level() );
+    private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing(0xFFFFFF, 0.6f);
 
-		if (Random.Int( level + 20 ) >= 18) {
+    @Override
+    public int proc(Armor armor, Char attacker, Char defender, int damage) {
 
-			int shockDmg = Random.NormalIntRange( 2, 6 );
+        int level = Math.max(0, armor.level());
 
-			defender.damage( shockDmg, LightningTrap.LIGHTNING );
-			
-			checkOwner( defender );
-			if (defender == Dungeon.hero) {
-				Dungeon.hero.belongings.charge(1f + level/10f);
-				Camera.main.shake( 2, 0.3f );
-			}
+        if (Random.Int(level + 20) >= 18) {
 
-			attacker.sprite.parent.add( new Lightning( attacker.pos, defender.pos, null ) );
+            int shockDmg = Random.NormalIntRange(2, 6);
 
-		}
-		
-		return damage;
-	}
+            defender.damage(shockDmg, LightningTrap.LIGHTNING);
 
-	@Override
-	public Glowing glowing() {
-		return WHITE;
-	}
+            checkOwner(defender);
+            if (defender == Dungeon.hero) {
+                Dungeon.hero.belongings.charge(1f + level / 10f);
+                Camera.main.shake(2, 0.3f);
+            }
+
+            attacker.sprite.parent.add(new Lightning(attacker.pos, defender.pos, null));
+
+        }
+
+        return damage;
+    }
+
+    @Override
+    public Glowing glowing() {
+        return WHITE;
+    }
 }

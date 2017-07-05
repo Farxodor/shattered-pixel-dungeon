@@ -33,88 +33,94 @@ import com.watabou.utils.Bundle;
 //shops probably shouldn't extend special room, because of cases like this.
 public class ImpShopRoom extends ShopRoom {
 
-	private boolean impSpawned = false;
+    private static final String IMP = "imp_spawned";
+    private boolean impSpawned = false;
 
-	//force a certain size here to guarantee enough room for 48 items, and the same center space
-	@Override
-	public int minWidth() {
-		return 9;
-	}
-	public int minHeight() {
-		return 9;
-	}
-	public int maxWidth() { return 9; }
-	public int maxHeight() { return 9; }
+    //force a certain size here to guarantee enough room for 48 items, and the same center space
+    @Override
+    public int minWidth() {
+        return 9;
+    }
 
-	@Override
-	public int maxConnections(int direction) {
-		return 2;
-	}
+    public int minHeight() {
+        return 9;
+    }
 
-	@Override
-	public void paint(Level level) {
-		Painter.fill( level, this, Terrain.WALL );
-		Painter.fill( level, this, 1, Terrain.EMPTY_SP );
-		Painter.fill( level, this, 3, Terrain.WATER);
+    public int maxWidth() {
+        return 9;
+    }
 
-		for (Door door : connected.values()) {
-			door.set( Door.Type.REGULAR );
-		}
+    public int maxHeight() {
+        return 9;
+    }
 
-		if (Imp.Quest.isCompleted()){
-			impSpawned = true;
-			placeItems(level);
-			placeShopkeeper(level);
-		} else {
-			impSpawned = false;
-		}
+    @Override
+    public int maxConnections(int direction) {
+        return 2;
+    }
 
-	}
+    @Override
+    public void paint(Level level) {
+        Painter.fill(level, this, Terrain.WALL);
+        Painter.fill(level, this, 1, Terrain.EMPTY_SP);
+        Painter.fill(level, this, 3, Terrain.WATER);
 
-	@Override
-	protected void placeShopkeeper(Level level) {
+        for (Door door : connected.values()) {
+            door.set(Door.Type.REGULAR);
+        }
 
-		int pos = level.pointToCell(center());
+        if (Imp.Quest.isCompleted()) {
+            impSpawned = true;
+            placeItems(level);
+            placeShopkeeper(level);
+        } else {
+            impSpawned = false;
+        }
 
-		Mob shopkeeper = new ImpShopkeeper();
-		shopkeeper.pos = pos;
-		level.mobs.add( shopkeeper );
+    }
 
-	}
+    @Override
+    protected void placeShopkeeper(Level level) {
 
-	//fix for connections not being bundled normally
-	@Override
-	public Door entrance() {
-		return connected.isEmpty() ? new Door(left, top+2) : super.entrance();
-	}
+        int pos = level.pointToCell(center());
 
-	private void spawnShop(Level level){
-		impSpawned = true;
-		super.paint(level);
-	}
+        Mob shopkeeper = new ImpShopkeeper();
+        shopkeeper.pos = pos;
+        level.mobs.add(shopkeeper);
 
-	private static final String IMP = "imp_spawned";
+    }
 
-	@Override
-	public void storeInBundle(Bundle bundle) {
-		super.storeInBundle(bundle);
-		bundle.put(IMP, impSpawned);
-	}
+    //fix for connections not being bundled normally
+    @Override
+    public Door entrance() {
+        return connected.isEmpty() ? new Door(left, top + 2) : super.entrance();
+    }
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		impSpawned = bundle.getBoolean(IMP);
-	}
+    private void spawnShop(Level level) {
+        impSpawned = true;
+        super.paint(level);
+    }
 
-	@Override
-	public void onLevelLoad(Level level) {
-		super.onLevelLoad(level);
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(IMP, impSpawned);
+    }
 
-		if (Imp.Quest.isCompleted() && !impSpawned){
-			impSpawned = true;
-			placeItems(level);
-			placeShopkeeper(level);
-		}
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        impSpawned = bundle.getBoolean(IMP);
+    }
+
+    @Override
+    public void onLevelLoad(Level level) {
+        super.onLevelLoad(level);
+
+        if (Imp.Quest.isCompleted() && !impSpawned) {
+            impSpawned = true;
+            placeItems(level);
+            placeShopkeeper(level);
+        }
+    }
 }

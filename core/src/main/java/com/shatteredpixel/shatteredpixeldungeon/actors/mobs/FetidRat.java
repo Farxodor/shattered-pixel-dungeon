@@ -35,61 +35,62 @@ import java.util.HashSet;
 
 public class FetidRat extends Rat {
 
-	{
-		spriteClass = FetidRatSprite.class;
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
 
-		HP = HT = 20;
-		defenseSkill = 5;
+    static {
+        IMMUNITIES.add(StenchGas.class);
+    }
 
-		EXP = 4;
+    {
+        spriteClass = FetidRatSprite.class;
 
-		state = WANDERING;
+        HP = HT = 20;
+        defenseSkill = 5;
 
-		properties.add(Property.MINIBOSS);
-		properties.add(Property.DEMONIC);
-	}
+        EXP = 4;
 
-	@Override
-	public int attackSkill( Char target ) {
-		return 12;
-	}
+        state = WANDERING;
 
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 2);
-	}
+        properties.add(Property.MINIBOSS);
+        properties.add(Property.DEMONIC);
+    }
 
-	@Override
-	public int attackProc( Char enemy, int damage ) {
-		if (Random.Int(3) == 0) {
-			Buff.affect(enemy, Ooze.class);
-		}
+    @Override
+    public int attackSkill(Char target) {
+        return 12;
+    }
 
-		return damage;
-	}
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 2);
+    }
 
-	@Override
-	public int defenseProc( Char enemy, int damage ) {
+    @Override
+    public int attackProc(Char enemy, int damage) {
+        if (Random.Int(3) == 0) {
+            Buff.affect(enemy, Ooze.class);
+        }
 
-		GameScene.add(Blob.seed(pos, 20, StenchGas.class));
+        return damage;
+    }
 
-		return super.defenseProc(enemy, damage);
-	}
+    @Override
+    public int defenseProc(Char enemy, int damage) {
 
-	@Override
-	public void die( Object cause ) {
-		super.die( cause );
+        GameScene.add(Blob.seed(pos, 20, StenchGas.class));
 
-		Ghost.Quest.process();
-	}
+        return super.defenseProc(enemy, damage);
+    }
 
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( StenchGas.class );
-	}
+    @Override
+    public void die(Object cause) {
+        super.die(cause);
 
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+        Ghost.Quest.process();
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

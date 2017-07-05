@@ -32,61 +32,63 @@ import com.watabou.utils.Random;
 import java.util.HashSet;
 
 public class Golem extends Mob {
-	
-	{
-		spriteClass = GolemSprite.class;
-		
-		HP = HT = 85;
-		defenseSkill = 18;
-		
-		EXP = 12;
-		maxLvl = 22;
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( 25, 40 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 28;
-	}
-	
-	@Override
-	protected float attackDelay() {
-		return 1.5f;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 12);
-	}
 
-	@Override
-	public void die( Object cause ) {
-		Imp.Quest.process( this );
-		
-		super.die( cause );
-	}
-	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-	static {
-	}
-	
-	@Override
-	public HashSet<Class<?>> resistances() {
-		return RESISTANCES;
-	}
-	
-	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
-	static {
-		IMMUNITIES.add( Amok.class );
-		IMMUNITIES.add( Terror.class );
-		IMMUNITIES.add( Sleep.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> immunities() {
-		return IMMUNITIES;
-	}
+    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+    private static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+
+    static {
+    }
+
+    static {
+        IMMUNITIES.add(Amok.class);
+        IMMUNITIES.add(Terror.class);
+        IMMUNITIES.add(Sleep.class);
+    }
+
+    {
+        spriteClass = GolemSprite.class;
+
+        HP = HT = 85;
+        defenseSkill = 18;
+
+        EXP = 12;
+        maxLvl = 22;
+    }
+
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(25, 40);
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return 28;
+    }
+
+    @Override
+    protected float attackDelay() {
+        return 1.5f;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 12);
+    }
+
+    @Override
+    public void die(Object cause) {
+        Imp.Quest.process(this);
+
+        super.die(cause);
+    }
+
+    @Override
+    public HashSet<Class<?>> resistances() {
+        return RESISTANCES;
+    }
+
+    @Override
+    public HashSet<Class<?>> immunities() {
+        return IMMUNITIES;
+    }
 }

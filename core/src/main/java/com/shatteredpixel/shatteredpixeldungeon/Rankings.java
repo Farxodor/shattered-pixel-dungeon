@@ -45,285 +45,279 @@ import java.util.Comparator;
 import java.util.UUID;
 
 public enum Rankings {
-	
-	INSTANCE;
-	
-	public static final int TABLE_SIZE	= 11;
-	
-	public static final String RANKINGS_FILE = "rankings.dat";
-	
-	public ArrayList<Record> records;
-	public int lastRecord;
-	public int totalNumber;
-	public int wonNumber;
 
-	public void submit( boolean win, Class cause ) {
+    INSTANCE;
 
-		load();
-		
-		Record rec = new Record();
-		
-		rec.cause = cause;
-		rec.win		= win;
-		rec.heroClass	= Dungeon.hero.heroClass;
-		rec.armorTier	= Dungeon.hero.tier();
-		rec.herolevel	= Dungeon.hero.lvl;
-		rec.depth		= Dungeon.depth;
-		rec.score	= score( win );
-		
-		INSTANCE.saveGameData(rec);
+    public static final int TABLE_SIZE = 11;
 
-		rec.gameID = UUID.randomUUID().toString();
-		
-		records.add( rec );
-		
-		Collections.sort( records, scoreComparator );
-		
-		lastRecord = records.indexOf( rec );
-		int size = records.size();
-		while (size > TABLE_SIZE) {
+    public static final String RANKINGS_FILE = "rankings.dat";
+    public static final String HERO = "hero";
+    public static final String STATS = "stats";
+    public static final String BADGES = "badges";
+    public static final String HANDLERS = "handlers";
+    private static final String RECORDS = "records";
+    private static final String LATEST = "latest";
+    private static final String TOTAL = "total";
+    private static final String WON = "won";
+    private static final Comparator<Record> scoreComparator = new Comparator<Rankings.Record>() {
+        @Override
+        public int compare(Record lhs, Record rhs) {
+            return (int) Math.signum(rhs.score - lhs.score);
+        }
+    };
+    public ArrayList<Record> records;
+    public int lastRecord;
+    public int totalNumber;
+    public int wonNumber;
 
-			if (lastRecord == size - 1) {
-				records.remove( size - 2 );
-				lastRecord--;
-			} else {
-				records.remove( size - 1 );
-			}
+    public void submit(boolean win, Class cause) {
 
-			size = records.size();
-		}
-		
-		totalNumber++;
-		if (win) {
-			wonNumber++;
-		}
+        load();
 
-		Badges.validateGamesPlayed();
-		
-		save();
-	}
+        Record rec = new Record();
 
-	private int score( boolean win ) {
-		return (Statistics.goldCollected + Dungeon.hero.lvl * (win ? 26 : Dungeon.depth ) * 100) * (win ? 2 : 1);
-	}
+        rec.cause = cause;
+        rec.win = win;
+        rec.heroClass = Dungeon.hero.heroClass;
+        rec.armorTier = Dungeon.hero.tier();
+        rec.herolevel = Dungeon.hero.lvl;
+        rec.depth = Dungeon.depth;
+        rec.score = score(win);
 
-	public static final String HERO = "hero";
-	public static final String STATS = "stats";
-	public static final String BADGES = "badges";
-	public static final String HANDLERS = "handlers";
+        INSTANCE.saveGameData(rec);
 
-	public void saveGameData(Record rec){
-		rec.gameData = new Bundle();
+        rec.gameID = UUID.randomUUID().toString();
 
-		Belongings belongings = Dungeon.hero.belongings;
+        records.add(rec);
 
-		//save the hero and belongings
-		ArrayList<Item> allItems = (ArrayList<Item>) belongings.backpack.items.clone();
-		//remove items that won't show up in the rankings screen
-		for (Item item : belongings.backpack.items.toArray( new Item[0])) {
-			if (item instanceof Bag){
-				for (Item bagItem : ((Bag) item).items.toArray( new Item[0])){
-					if (Dungeon.quickslot.contains(bagItem)) belongings.backpack.items.add(bagItem);
-				}
-				belongings.backpack.items.remove(item);
-			} else if (!Dungeon.quickslot.contains(item))
-				belongings.backpack.items.remove(item);
-		}
-		rec.gameData.put( HERO, Dungeon.hero );
+        Collections.sort(records, scoreComparator);
 
-		//save stats
-		Bundle stats = new Bundle();
-		Statistics.storeInBundle(stats);
-		rec.gameData.put( STATS, stats);
+        lastRecord = records.indexOf(rec);
+        int size = records.size();
+        while (size > TABLE_SIZE) {
 
-		//save badges
-		Bundle badges = new Bundle();
-		Badges.saveLocal(badges);
-		rec.gameData.put( BADGES, badges);
+            if (lastRecord == size - 1) {
+                records.remove(size - 2);
+                lastRecord--;
+            } else {
+                records.remove(size - 1);
+            }
 
-		//save handler information
-		Bundle handler = new Bundle();
-		Scroll.saveSelectively(handler, belongings.backpack.items);
-		Potion.saveSelectively(handler, belongings.backpack.items);
-		//include worn rings
-		if (belongings.misc1 != null) belongings.backpack.items.add(belongings.misc1);
-		if (belongings.misc2 != null) belongings.backpack.items.add(belongings.misc2);
-		Ring.saveSelectively(handler, belongings.backpack.items);
-		rec.gameData.put( HANDLERS, handler);
+            size = records.size();
+        }
 
-		//restore items now that we're done saving
-		belongings.backpack.items = allItems;
-	}
+        totalNumber++;
+        if (win) {
+            wonNumber++;
+        }
 
-	public void loadGameData(Record rec){
-		Bundle data = rec.gameData;
+        Badges.validateGamesPlayed();
 
-		Dungeon.hero = null;
-		Dungeon.level = null;
-		Generator.reset();
-		Dungeon.quickslot.reset();
-		QuickSlotButton.reset();
+        save();
+    }
 
-		Bundle handler = data.getBundle(HANDLERS);
-		Scroll.restore(handler);
-		Potion.restore(handler);
-		Ring.restore(handler);
+    private int score(boolean win) {
+        return (Statistics.goldCollected + Dungeon.hero.lvl * (win ? 26 : Dungeon.depth) * 100) * (win ? 2 : 1);
+    }
 
-		Badges.loadLocal(data.getBundle(BADGES));
+    public void saveGameData(Record rec) {
+        rec.gameData = new Bundle();
 
-		Dungeon.hero = (Hero)data.get(HERO);
+        Belongings belongings = Dungeon.hero.belongings;
 
-		Statistics.restoreFromBundle(data.getBundle(STATS));
-		
-		Dungeon.challenges = 0;
+        //save the hero and belongings
+        ArrayList<Item> allItems = (ArrayList<Item>) belongings.backpack.items.clone();
+        //remove items that won't show up in the rankings screen
+        for (Item item : belongings.backpack.items.toArray(new Item[0])) {
+            if (item instanceof Bag) {
+                for (Item bagItem : ((Bag) item).items.toArray(new Item[0])) {
+                    if (Dungeon.quickslot.contains(bagItem)) belongings.backpack.items.add(bagItem);
+                }
+                belongings.backpack.items.remove(item);
+            } else if (!Dungeon.quickslot.contains(item))
+                belongings.backpack.items.remove(item);
+        }
+        rec.gameData.put(HERO, Dungeon.hero);
 
-	}
-	
-	private static final String RECORDS	= "records";
-	private static final String LATEST	= "latest";
-	private static final String TOTAL	= "total";
-	private static final String WON     = "won";
+        //save stats
+        Bundle stats = new Bundle();
+        Statistics.storeInBundle(stats);
+        rec.gameData.put(STATS, stats);
 
-	public void save() {
-		Bundle bundle = new Bundle();
-		bundle.put( RECORDS, records );
-		bundle.put( LATEST, lastRecord );
-		bundle.put( TOTAL, totalNumber );
-		bundle.put( WON, wonNumber );
+        //save badges
+        Bundle badges = new Bundle();
+        Badges.saveLocal(badges);
+        rec.gameData.put(BADGES, badges);
 
-		try {
-			OutputStream output = Game.instance.openFileOutput( RANKINGS_FILE, Game.MODE_PRIVATE );
-			Bundle.write( bundle, output );
-			output.close();
-		} catch (IOException e) {
-			ShatteredPixelDungeon.reportException(e);
-		}
+        //save handler information
+        Bundle handler = new Bundle();
+        Scroll.saveSelectively(handler, belongings.backpack.items);
+        Potion.saveSelectively(handler, belongings.backpack.items);
+        //include worn rings
+        if (belongings.misc1 != null) belongings.backpack.items.add(belongings.misc1);
+        if (belongings.misc2 != null) belongings.backpack.items.add(belongings.misc2);
+        Ring.saveSelectively(handler, belongings.backpack.items);
+        rec.gameData.put(HANDLERS, handler);
 
-	}
-	
-	public void load() {
-		
-		if (records != null) {
-			return;
-		}
-		
-		records = new ArrayList<>();
-		
-		try {
-			InputStream input = Game.instance.openFileInput( RANKINGS_FILE );
-			Bundle bundle = Bundle.read( input );
-			input.close();
-			
-			for (Bundlable record : bundle.getCollection( RECORDS )) {
-				records.add( (Record)record );
-			}
-			lastRecord = bundle.getInt( LATEST );
-			
-			totalNumber = bundle.getInt( TOTAL );
-			if (totalNumber == 0) {
-				totalNumber = records.size();
-			}
+        //restore items now that we're done saving
+        belongings.backpack.items = allItems;
+    }
 
-			wonNumber = bundle.getInt( WON );
-			if (wonNumber == 0) {
-				for (Record rec : records) {
-					if (rec.win) {
-						wonNumber++;
-					}
-				}
-			}
+    public void loadGameData(Record rec) {
+        Bundle data = rec.gameData;
 
-		} catch (IOException e) {
-		}
-	}
+        Dungeon.hero = null;
+        Dungeon.level = null;
+        Generator.reset();
+        Dungeon.quickslot.reset();
+        QuickSlotButton.reset();
 
-	public static class Record implements Bundlable {
-		
-		//pre 0.4.1
-		public String gameFile;
-		private static final String FILE    = "gameFile";
+        Bundle handler = data.getBundle(HANDLERS);
+        Scroll.restore(handler);
+        Potion.restore(handler);
+        Ring.restore(handler);
 
-		private static final String CAUSE   = "cause";
-		private static final String WIN		= "win";
-		private static final String SCORE	= "score";
-		private static final String TIER	= "tier";
-		private static final String LEVEL	= "level";
-		private static final String DEPTH	= "depth";
-		private static final String DATA	= "gameData";
-		private static final String ID      = "gameID";
+        Badges.loadLocal(data.getBundle(BADGES));
 
-		public Class cause;
-		public boolean win;
-		
-		public HeroClass heroClass;
-		public int armorTier;
-		public int herolevel;
-		public int depth;
-		
-		public Bundle gameData;
-		public String gameID;
+        Dungeon.hero = (Hero) data.get(HERO);
 
-		public int score;
+        Statistics.restoreFromBundle(data.getBundle(STATS));
 
-		public String desc(){
-			if (cause == null) {
-				return Messages.get(this, "something");
-			} else {
-				String result = Messages.get(cause, "rankings_desc", (Messages.get(cause, "name")));
-				if (result.contains("!!!NO TEXT FOUND!!!")){
-					return Messages.get(this, "something");
-				} else {
-					return result;
-				}
-			}
-		}
-		
-		@Override
-		public void restoreFromBundle( Bundle bundle ) {
-			
-			if (bundle.contains( CAUSE )) {
-				cause   = bundle.getClass( CAUSE );
-			} else {
-				cause = null;
-			}
-			
-			win		= bundle.getBoolean( WIN );
-			score	= bundle.getInt( SCORE );
-			
-			heroClass	= HeroClass.restoreInBundle( bundle );
-			armorTier	= bundle.getInt( TIER );
-			
-			if (bundle.contains(FILE))  gameFile = bundle.getString(FILE);
-			if (bundle.contains(DATA))  gameData = bundle.getBundle(DATA);
-			if (bundle.contains(ID))    gameID = bundle.getString(ID);
+        Dungeon.challenges = 0;
 
-			depth = bundle.getInt( DEPTH );
-			herolevel = bundle.getInt( LEVEL );
+    }
 
-		}
-		
-		@Override
-		public void storeInBundle( Bundle bundle ) {
-			
-			if (cause != null) bundle.put( CAUSE, cause );
+    public void save() {
+        Bundle bundle = new Bundle();
+        bundle.put(RECORDS, records);
+        bundle.put(LATEST, lastRecord);
+        bundle.put(TOTAL, totalNumber);
+        bundle.put(WON, wonNumber);
 
-			bundle.put( WIN, win );
-			bundle.put( SCORE, score );
-			
-			heroClass.storeInBundle( bundle );
-			bundle.put( TIER, armorTier );
-			bundle.put( LEVEL, herolevel );
-			bundle.put( DEPTH, depth );
-			
-			if (gameData != null) bundle.put( DATA, gameData );
-			bundle.put( ID, gameID );
-		}
-	}
+        try {
+            OutputStream output = Game.instance.openFileOutput(RANKINGS_FILE, Game.MODE_PRIVATE);
+            Bundle.write(bundle, output);
+            output.close();
+        } catch (IOException e) {
+            ShatteredPixelDungeon.reportException(e);
+        }
 
-	private static final Comparator<Record> scoreComparator = new Comparator<Rankings.Record>() {
-		@Override
-		public int compare( Record lhs, Record rhs ) {
-			return (int)Math.signum( rhs.score - lhs.score );
-		}
-	};
+    }
+
+    public void load() {
+
+        if (records != null) {
+            return;
+        }
+
+        records = new ArrayList<>();
+
+        try {
+            InputStream input = Game.instance.openFileInput(RANKINGS_FILE);
+            Bundle bundle = Bundle.read(input);
+            input.close();
+
+            for (Bundlable record : bundle.getCollection(RECORDS)) {
+                records.add((Record) record);
+            }
+            lastRecord = bundle.getInt(LATEST);
+
+            totalNumber = bundle.getInt(TOTAL);
+            if (totalNumber == 0) {
+                totalNumber = records.size();
+            }
+
+            wonNumber = bundle.getInt(WON);
+            if (wonNumber == 0) {
+                for (Record rec : records) {
+                    if (rec.win) {
+                        wonNumber++;
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+        }
+    }
+
+    public static class Record implements Bundlable {
+
+        private static final String FILE = "gameFile";
+        private static final String CAUSE = "cause";
+        private static final String WIN = "win";
+        private static final String SCORE = "score";
+        private static final String TIER = "tier";
+        private static final String LEVEL = "level";
+        private static final String DEPTH = "depth";
+        private static final String DATA = "gameData";
+        private static final String ID = "gameID";
+        //pre 0.4.1
+        public String gameFile;
+        public Class cause;
+        public boolean win;
+
+        public HeroClass heroClass;
+        public int armorTier;
+        public int herolevel;
+        public int depth;
+
+        public Bundle gameData;
+        public String gameID;
+
+        public int score;
+
+        public String desc() {
+            if (cause == null) {
+                return Messages.get(this, "something");
+            } else {
+                String result = Messages.get(cause, "rankings_desc", (Messages.get(cause, "name")));
+                if (result.contains("!!!NO TEXT FOUND!!!")) {
+                    return Messages.get(this, "something");
+                } else {
+                    return result;
+                }
+            }
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+
+            if (bundle.contains(CAUSE)) {
+                cause = bundle.getClass(CAUSE);
+            } else {
+                cause = null;
+            }
+
+            win = bundle.getBoolean(WIN);
+            score = bundle.getInt(SCORE);
+
+            heroClass = HeroClass.restoreInBundle(bundle);
+            armorTier = bundle.getInt(TIER);
+
+            if (bundle.contains(FILE)) gameFile = bundle.getString(FILE);
+            if (bundle.contains(DATA)) gameData = bundle.getBundle(DATA);
+            if (bundle.contains(ID)) gameID = bundle.getString(ID);
+
+            depth = bundle.getInt(DEPTH);
+            herolevel = bundle.getInt(LEVEL);
+
+        }
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+
+            if (cause != null) bundle.put(CAUSE, cause);
+
+            bundle.put(WIN, win);
+            bundle.put(SCORE, score);
+
+            heroClass.storeInBundle(bundle);
+            bundle.put(TIER, armorTier);
+            bundle.put(LEVEL, herolevel);
+            bundle.put(DEPTH, depth);
+
+            if (gameData != null) bundle.put(DATA, gameData);
+            bundle.put(ID, gameID);
+        }
+    }
 }

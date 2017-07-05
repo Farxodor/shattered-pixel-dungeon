@@ -43,153 +43,151 @@ import java.util.ArrayList;
 
 public class SewerBossLevel extends SewerLevel {
 
-	{
-		color1 = 0x48763c;
-		color2 = 0x59994a;
-	}
-	
-	private int stairs = 0;
-	
-	@Override
-	protected ArrayList<Room> initRooms() {
-		ArrayList<Room> initRooms = new ArrayList<>();
-		initRooms.add ( roomEntrance = roomExit = new SewerBossEntranceRoom());
-		
-		int standards = standardRooms();
-		for (int i = 0; i < standards; i++) {
-			initRooms.add(new EmptyRoom());
-		}
-		
-		initRooms.add(new RatKingRoom());
-		return initRooms;
-	}
-	
-	@Override
-	protected int standardRooms() {
-		//2 to 4, average 3
-		return 2+Random.chances(new float[]{1, 1, 1});
-	}
-	
-	protected Builder builder(){
-		return new LoopBuilder()
-				.setPathLength(1f, new float[]{1})
-				.setTunnelLength(new float[]{0, 3, 1}, new float[]{1});
-	}
-	
-	@Override
-	protected void placeSign() {
-		while (true) {
-			int pos = pointToCell(roomEntrance.random(2));
-			if (map[pos] != Terrain.LOCKED_EXIT
-					&& map[pos] != Terrain.WALL_DECO
-					&& map[pos] != Terrain.ENTRANCE) {
-				map[pos] = Terrain.SIGN;
-				break;
-			}
-		}
-	}
-	
-	@Override
-	protected float waterFill(){
-		return 0.50f;
-	}
-	
-	@Override
-	protected int waterSmoothing(){
-		return 5;
-	}
-	
-	@Override
-	protected float grassFill() {
-		return 0.20f;
-	}
-	
-	@Override
-	protected int grassSmoothing() {
-		return 4;
-	}
-	
-	protected int nTraps() {
-		return 0;
-	}
+    private static final String STAIRS = "stairs";
+    private int stairs = 0;
 
-	@Override
-	protected void createMobs() {
-		Mob mob = Bestiary.mob( Dungeon.depth );
-		Room room;
-		do {
-			room = randomRoom(StandardRoom.class);
-		} while (room == roomEntrance);
-		mob.pos = pointToCell(room.random());
-		mobs.add( mob );
-	}
-	
-	public Actor respawner() {
-		return null;
-	}
-	
-	@Override
-	protected void createItems() {
-		Item item = Bones.get();
-		if (item != null) {
-			int pos;
-			do {
-				pos = pointToCell(roomEntrance.random());
-			} while (pos == entrance || map[pos] == Terrain.SIGN || solid[pos]);
-			drop( item, pos ).type = Heap.Type.REMAINS;
-		}
-	}
+    {
+        color1 = 0x48763c;
+        color2 = 0x59994a;
+    }
 
-	@Override
-	public int randomRespawnCell() {
-		int pos;
-		do {
-			pos = pointToCell(roomEntrance.random());
-		} while (pos == entrance || map[pos] == Terrain.SIGN || solid[pos]);
-		return pos;
-	}
+    @Override
+    protected ArrayList<Room> initRooms() {
+        ArrayList<Room> initRooms = new ArrayList<>();
+        initRooms.add(roomEntrance = roomExit = new SewerBossEntranceRoom());
 
-	
-	public void seal() {
-		if (entrance != 0) {
+        int standards = standardRooms();
+        for (int i = 0; i < standards; i++) {
+            initRooms.add(new EmptyRoom());
+        }
 
-			super.seal();
-			
-			set( entrance, Terrain.WATER );
-			GameScene.updateMap( entrance );
-			GameScene.ripple( entrance );
-			
-			stairs = entrance;
-			entrance = 0;
-		}
-	}
-	
-	public void unseal() {
-		if (stairs != 0) {
+        initRooms.add(new RatKingRoom());
+        return initRooms;
+    }
 
-			super.unseal();
-			
-			entrance = stairs;
-			stairs = 0;
-			
-			set( entrance, Terrain.ENTRANCE );
-			GameScene.updateMap( entrance );
+    @Override
+    protected int standardRooms() {
+        //2 to 4, average 3
+        return 2 + Random.chances(new float[]{1, 1, 1});
+    }
 
-		}
-	}
-	
-	private static final String STAIRS	= "stairs";
-	
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( STAIRS, stairs );
-	}
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		stairs = bundle.getInt( STAIRS );
-		roomExit = roomEntrance;
-	}
+    protected Builder builder() {
+        return new LoopBuilder()
+                .setPathLength(1f, new float[]{1})
+                .setTunnelLength(new float[]{0, 3, 1}, new float[]{1});
+    }
+
+    @Override
+    protected void placeSign() {
+        while (true) {
+            int pos = pointToCell(roomEntrance.random(2));
+            if (map[pos] != Terrain.LOCKED_EXIT
+                    && map[pos] != Terrain.WALL_DECO
+                    && map[pos] != Terrain.ENTRANCE) {
+                map[pos] = Terrain.SIGN;
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected float waterFill() {
+        return 0.50f;
+    }
+
+    @Override
+    protected int waterSmoothing() {
+        return 5;
+    }
+
+    @Override
+    protected float grassFill() {
+        return 0.20f;
+    }
+
+    @Override
+    protected int grassSmoothing() {
+        return 4;
+    }
+
+    protected int nTraps() {
+        return 0;
+    }
+
+    @Override
+    protected void createMobs() {
+        Mob mob = Bestiary.mob(Dungeon.depth);
+        Room room;
+        do {
+            room = randomRoom(StandardRoom.class);
+        } while (room == roomEntrance);
+        mob.pos = pointToCell(room.random());
+        mobs.add(mob);
+    }
+
+    public Actor respawner() {
+        return null;
+    }
+
+    @Override
+    protected void createItems() {
+        Item item = Bones.get();
+        if (item != null) {
+            int pos;
+            do {
+                pos = pointToCell(roomEntrance.random());
+            } while (pos == entrance || map[pos] == Terrain.SIGN || solid[pos]);
+            drop(item, pos).type = Heap.Type.REMAINS;
+        }
+    }
+
+    @Override
+    public int randomRespawnCell() {
+        int pos;
+        do {
+            pos = pointToCell(roomEntrance.random());
+        } while (pos == entrance || map[pos] == Terrain.SIGN || solid[pos]);
+        return pos;
+    }
+
+    public void seal() {
+        if (entrance != 0) {
+
+            super.seal();
+
+            set(entrance, Terrain.WATER);
+            GameScene.updateMap(entrance);
+            GameScene.ripple(entrance);
+
+            stairs = entrance;
+            entrance = 0;
+        }
+    }
+
+    public void unseal() {
+        if (stairs != 0) {
+
+            super.unseal();
+
+            entrance = stairs;
+            stairs = 0;
+
+            set(entrance, Terrain.ENTRANCE);
+            GameScene.updateMap(entrance);
+
+        }
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(STAIRS, stairs);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        stairs = bundle.getInt(STAIRS);
+        roomExit = roomEntrance;
+    }
 }

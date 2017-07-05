@@ -28,19 +28,19 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class VenomTrap extends Trap {
 
-	{
-		color = VIOLET;
-		shape = GRILL;
-	}
+    {
+        color = VIOLET;
+        shape = GRILL;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		VenomGas venomGas = Blob.seed(pos, 80 + 5 * Dungeon.depth, VenomGas.class);
+        VenomGas venomGas = Blob.seed(pos, 80 + 5 * Dungeon.depth, VenomGas.class);
 
-		venomGas.setStrength(1+Dungeon.depth/4);
+        venomGas.setStrength(1 + Dungeon.depth / 4);
 
-		GameScene.add(venomGas);
+        GameScene.add(venomGas);
 
-	}
+    }
 }

@@ -29,33 +29,33 @@ import com.watabou.utils.Random;
 
 public class Unstable extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing( 0xFFFFFF );
+    private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing(0xFFFFFF);
 
-	private static Class<?extends Weapon.Enchantment>[] randomEnchants = new Class[]{
-			Blazing.class,
-			Chilling.class,
-			Dazzling.class,
-			Eldritch.class,
-			Grim.class,
-			Lucky.class,
-			Shocking.class,
-			Stunning.class,
-			Vampiric.class,
-			Vorpal.class
-	};
+    private static Class<? extends Weapon.Enchantment>[] randomEnchants = new Class[]{
+            Blazing.class,
+            Chilling.class,
+            Dazzling.class,
+            Eldritch.class,
+            Grim.class,
+            Lucky.class,
+            Shocking.class,
+            Stunning.class,
+            Vampiric.class,
+            Vorpal.class
+    };
 
-	@Override
-	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		try {
-			return Random.oneOf(randomEnchants).newInstance().proc( weapon, attacker, defender, damage );
-		} catch (Exception e) {
-			ShatteredPixelDungeon.reportException(e);
-			return damage;
-		}
-	}
+    @Override
+    public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
+        try {
+            return Random.oneOf(randomEnchants).newInstance().proc(weapon, attacker, defender, damage);
+        } catch (Exception e) {
+            ShatteredPixelDungeon.reportException(e);
+            return damage;
+        }
+    }
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return WHITE;
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return WHITE;
+    }
 }

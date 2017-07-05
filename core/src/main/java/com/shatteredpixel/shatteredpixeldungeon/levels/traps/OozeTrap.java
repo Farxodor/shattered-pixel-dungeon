@@ -29,18 +29,18 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 
 public class OozeTrap extends Trap {
 
-	{
-		color = GREEN;
-		shape = DOTS;
-	}
+    {
+        color = GREEN;
+        shape = DOTS;
+    }
 
-	@Override
-	public void activate() {
-		Char ch = Actor.findChar( pos );
+    @Override
+    public void activate() {
+        Char ch = Actor.findChar(pos);
 
-		if (ch != null){
-			Buff.affect(ch, Ooze.class);
-			Splash.at( pos, 0x000000, 5);
-		}
-	}
+        if (ch != null) {
+            Buff.affect(ch, Ooze.class);
+            Splash.at(pos, 0x000000, 5);
+        }
+    }
 }

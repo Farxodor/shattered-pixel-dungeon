@@ -40,96 +40,96 @@ import java.util.HashSet;
 
 public class Shaman extends Mob implements Callback {
 
-	private static final float TIME_TO_ZAP	= 1f;
-	
-	{
-		spriteClass = ShamanSprite.class;
-		
-		HP = HT = 18;
-		defenseSkill = 8;
-		
-		EXP = 6;
-		maxLvl = 14;
-		
-		loot = Generator.Category.SCROLL;
-		lootChance = 0.33f;
-	}
-	
-	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( 2, 8 );
-	}
-	
-	@Override
-	public int attackSkill( Char target ) {
-		return 11;
-	}
-	
-	@Override
-	public int drRoll() {
-		return Random.NormalIntRange(0, 4);
-	}
-	
-	@Override
-	protected boolean canAttack( Char enemy ) {
-		return new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
-	}
-	
-	@Override
-	protected boolean doAttack( Char enemy ) {
+    private static final float TIME_TO_ZAP = 1f;
+    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
 
-		if (Dungeon.level.distance( pos, enemy.pos ) <= 1) {
-			
-			return super.doAttack( enemy );
-			
-		} else {
-			
-			boolean visible = Level.fieldOfView[pos] || Level.fieldOfView[enemy.pos];
-			if (visible) {
-				sprite.zap( enemy.pos );
-			}
-			
-			spend( TIME_TO_ZAP );
-			
-			if (hit( this, enemy, true )) {
-				int dmg = Random.NormalIntRange(3, 10);
-				if (Level.water[enemy.pos] && !enemy.flying) {
-					dmg *= 1.5f;
-				}
-				enemy.damage( dmg, LightningTrap.LIGHTNING );
-				
-				enemy.sprite.centerEmitter().burst( SparkParticle.FACTORY, 3 );
-				enemy.sprite.flash();
-				
-				if (enemy == Dungeon.hero) {
-					
-					Camera.main.shake( 2, 0.3f );
-					
-					if (!enemy.isAlive()) {
-						Dungeon.fail( getClass() );
-						GLog.n( Messages.get(this, "zap_kill") );
-					}
-				}
-			} else {
-				enemy.sprite.showStatus( CharSprite.NEUTRAL,  enemy.defenseVerb() );
-			}
-			
-			return !visible;
-		}
-	}
-	
-	@Override
-	public void call() {
-		next();
-	}
+    static {
+        RESISTANCES.add(LightningTrap.Electricity.class);
+    }
 
-	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
-	static {
-		RESISTANCES.add( LightningTrap.Electricity.class );
-	}
-	
-	@Override
-	public HashSet<Class<?>> resistances() {
-		return RESISTANCES;
-	}
+    {
+        spriteClass = ShamanSprite.class;
+
+        HP = HT = 18;
+        defenseSkill = 8;
+
+        EXP = 6;
+        maxLvl = 14;
+
+        loot = Generator.Category.SCROLL;
+        lootChance = 0.33f;
+    }
+
+    @Override
+    public int damageRoll() {
+        return Random.NormalIntRange(2, 8);
+    }
+
+    @Override
+    public int attackSkill(Char target) {
+        return 11;
+    }
+
+    @Override
+    public int drRoll() {
+        return Random.NormalIntRange(0, 4);
+    }
+
+    @Override
+    protected boolean canAttack(Char enemy) {
+        return new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
+    }
+
+    @Override
+    protected boolean doAttack(Char enemy) {
+
+        if (Dungeon.level.distance(pos, enemy.pos) <= 1) {
+
+            return super.doAttack(enemy);
+
+        } else {
+
+            boolean visible = Level.fieldOfView[pos] || Level.fieldOfView[enemy.pos];
+            if (visible) {
+                sprite.zap(enemy.pos);
+            }
+
+            spend(TIME_TO_ZAP);
+
+            if (hit(this, enemy, true)) {
+                int dmg = Random.NormalIntRange(3, 10);
+                if (Level.water[enemy.pos] && !enemy.flying) {
+                    dmg *= 1.5f;
+                }
+                enemy.damage(dmg, LightningTrap.LIGHTNING);
+
+                enemy.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
+                enemy.sprite.flash();
+
+                if (enemy == Dungeon.hero) {
+
+                    Camera.main.shake(2, 0.3f);
+
+                    if (!enemy.isAlive()) {
+                        Dungeon.fail(getClass());
+                        GLog.n(Messages.get(this, "zap_kill"));
+                    }
+                }
+            } else {
+                enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+            }
+
+            return !visible;
+        }
+    }
+
+    @Override
+    public void call() {
+        next();
+    }
+
+    @Override
+    public HashSet<Class<?>> resistances() {
+        return RESISTANCES;
+    }
 }

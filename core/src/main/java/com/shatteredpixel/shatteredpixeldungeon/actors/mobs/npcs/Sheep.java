@@ -30,43 +30,41 @@ import com.watabou.utils.Random;
 
 public class Sheep extends NPC {
 
-	private static final String[] LINE_KEYS = {"Baa!", "Baa?", "Baa.", "Baa..."};
+    private static final String[] LINE_KEYS = {"Baa!", "Baa?", "Baa.", "Baa..."};
+    public float lifespan;
+    private boolean initialized = false;
 
-	{
-		spriteClass = SheepSprite.class;
-	}
+    {
+        spriteClass = SheepSprite.class;
+    }
 
-	public float lifespan;
+    @Override
+    protected boolean act() {
+        if (initialized) {
+            HP = 0;
 
-	private boolean initialized = false;
+            destroy();
+            sprite.die();
 
-	@Override
-	protected boolean act() {
-		if (initialized) {
-			HP = 0;
+        } else {
+            initialized = true;
+            spend(lifespan + Random.Float(2));
+        }
+        return true;
+    }
 
-			destroy();
-			sprite.die();
+    @Override
+    public void damage(int dmg, Object src) {
+    }
 
-		} else {
-			initialized = true;
-			spend( lifespan + Random.Float(2) );
-		}
-		return true;
-	}
+    @Override
+    public void add(Buff buff) {
+    }
 
-	@Override
-	public void damage( int dmg, Object src ) {
-	}
-
-	@Override
-	public void add( Buff buff ) {
-	}
-
-	@Override
-	public boolean interact() {
-		sprite.showStatus( CharSprite.NEUTRAL, Messages.get(this, Random.element( LINE_KEYS )) );
-		Dungeon.hero.spendAndNext(1f);
-		return false;
-	}
+    @Override
+    public boolean interact() {
+        sprite.showStatus(CharSprite.NEUTRAL, Messages.get(this, Random.element(LINE_KEYS)));
+        Dungeon.hero.spendAndNext(1f);
+        return false;
+    }
 }

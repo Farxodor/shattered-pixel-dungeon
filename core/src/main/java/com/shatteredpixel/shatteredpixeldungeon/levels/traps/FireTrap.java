@@ -29,16 +29,16 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class FireTrap extends Trap {
 
-	{
-		color = ORANGE;
-		shape = DOTS;
-	}
+    {
+        color = ORANGE;
+        shape = DOTS;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		GameScene.add( Blob.seed( pos, 2, Fire.class ) );
-		CellEmitter.get( pos ).burst( FlameParticle.FACTORY, 5 );
+        GameScene.add(Blob.seed(pos, 2, Fire.class));
+        CellEmitter.get(pos).burst(FlameParticle.FACTORY, 5);
 
-	}
+    }
 }

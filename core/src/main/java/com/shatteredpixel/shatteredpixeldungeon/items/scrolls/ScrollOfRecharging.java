@@ -34,34 +34,34 @@ import com.watabou.noosa.audio.Sample;
 
 public class ScrollOfRecharging extends Scroll {
 
-	public static final float BUFF_DURATION = 30f;
+    public static final float BUFF_DURATION = 30f;
 
-	{
-		initials = 7;
-	}
+    {
+        initials = 7;
+    }
 
-	@Override
-	protected void doRead() {
+    public static void charge(Hero hero) {
+        hero.sprite.centerEmitter().burst(EnergyParticle.FACTORY, 15);
+    }
 
-		Buff.affect(curUser, Recharging.class, BUFF_DURATION);
-		charge(curUser);
-		
-		Sample.INSTANCE.play( Assets.SND_READ );
-		Invisibility.dispel();
+    @Override
+    protected void doRead() {
 
-		GLog.i( Messages.get(this, "surge") );
-		SpellSprite.show( curUser, SpellSprite.CHARGE );
-		setKnown();
+        Buff.affect(curUser, Recharging.class, BUFF_DURATION);
+        charge(curUser);
 
-		readAnimation();
-	}
-	
-	public static void charge( Hero hero ) {
-		hero.sprite.centerEmitter().burst( EnergyParticle.FACTORY, 15 );
-	}
-	
-	@Override
-	public int price() {
-		return isKnown() ? 40 * quantity : super.price();
-	}
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
+
+        GLog.i(Messages.get(this, "surge"));
+        SpellSprite.show(curUser, SpellSprite.CHARGE);
+        setKnown();
+
+        readAnimation();
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 40 * quantity : super.price();
+    }
 }

@@ -43,88 +43,88 @@ import java.util.ArrayList;
 
 public class CeremonialCandle extends Item {
 
-	//generated with the wandmaker quest
-	public static int ritualPos;
+    //generated with the wandmaker quest
+    public static int ritualPos;
 
-	{
-		image = ItemSpriteSheet.CANDLE;
+    {
+        image = ItemSpriteSheet.CANDLE;
 
-		defaultAction = AC_THROW;
+        defaultAction = AC_THROW;
 
-		unique = true;
-		stackable = true;
-	}
+        unique = true;
+        stackable = true;
+    }
 
-	@Override
-	public boolean isUpgradable() {
-		return false;
-	}
+    private static void checkCandles() {
+        Heap heapTop = Dungeon.level.heaps.get(ritualPos - Dungeon.level.width());
+        Heap heapRight = Dungeon.level.heaps.get(ritualPos + 1);
+        Heap heapBottom = Dungeon.level.heaps.get(ritualPos + Dungeon.level.width());
+        Heap heapLeft = Dungeon.level.heaps.get(ritualPos - 1);
 
-	@Override
-	public boolean isIdentified() {
-		return true;
-	}
+        if (heapTop != null &&
+                heapRight != null &&
+                heapBottom != null &&
+                heapLeft != null) {
 
-	@Override
-	public void doDrop(Hero hero) {
-		super.doDrop(hero);
-		checkCandles();
-	}
+            if (heapTop.peek() instanceof CeremonialCandle &&
+                    heapRight.peek() instanceof CeremonialCandle &&
+                    heapBottom.peek() instanceof CeremonialCandle &&
+                    heapLeft.peek() instanceof CeremonialCandle) {
 
-	@Override
-	protected void onThrow(int cell) {
-		super.onThrow(cell);
-		checkCandles();
-	}
+                heapTop.pickUp();
+                heapRight.pickUp();
+                heapBottom.pickUp();
+                heapLeft.pickUp();
 
-	private static void checkCandles(){
-		Heap heapTop = Dungeon.level.heaps.get(ritualPos - Dungeon.level.width());
-		Heap heapRight = Dungeon.level.heaps.get(ritualPos + 1);
-		Heap heapBottom = Dungeon.level.heaps.get(ritualPos + Dungeon.level.width());
-		Heap heapLeft = Dungeon.level.heaps.get(ritualPos - 1);
+                NewbornElemental elemental = new NewbornElemental();
+                Char ch = Actor.findChar(ritualPos);
+                if (ch != null) {
+                    ArrayList<Integer> candidates = new ArrayList<>();
+                    for (int n : PathFinder.NEIGHBOURS8) {
+                        int cell = ritualPos + n;
+                        if ((Level.passable[cell] || Level.avoid[cell]) && Actor.findChar(cell) == null) {
+                            candidates.add(cell);
+                        }
+                    }
+                    if (candidates.size() > 0) {
+                        elemental.pos = Random.element(candidates);
+                    } else {
+                        elemental.pos = ritualPos;
+                    }
+                } else {
+                    elemental.pos = ritualPos;
+                }
+                elemental.state = elemental.HUNTING;
+                GameScene.add(elemental, 1);
 
-		if (heapTop != null &&
-				heapRight != null &&
-				heapBottom != null &&
-				heapLeft != null){
+                for (int i : PathFinder.NEIGHBOURS9) {
+                    CellEmitter.get(ritualPos + i).burst(ElmoParticle.FACTORY, 10);
+                }
+                Sample.INSTANCE.play(Assets.SND_BURNING);
+            }
+        }
 
-			if (heapTop.peek() instanceof CeremonialCandle &&
-					heapRight.peek() instanceof CeremonialCandle &&
-					heapBottom.peek() instanceof CeremonialCandle &&
-					heapLeft.peek() instanceof CeremonialCandle){
+    }
 
-				heapTop.pickUp();
-				heapRight.pickUp();
-				heapBottom.pickUp();
-				heapLeft.pickUp();
+    @Override
+    public boolean isUpgradable() {
+        return false;
+    }
 
-				NewbornElemental elemental = new NewbornElemental();
-				Char ch = Actor.findChar( ritualPos );
-				if (ch != null) {
-					ArrayList<Integer> candidates = new ArrayList<>();
-					for (int n : PathFinder.NEIGHBOURS8) {
-						int cell = ritualPos + n;
-						if ((Level.passable[cell] || Level.avoid[cell]) && Actor.findChar( cell ) == null) {
-							candidates.add( cell );
-						}
-					}
-					if (candidates.size() > 0) {
-						elemental.pos = Random.element( candidates );
-					} else {
-						elemental.pos = ritualPos;
-					}
-				} else {
-					elemental.pos = ritualPos;
-				}
-				elemental.state = elemental.HUNTING;
-				GameScene.add(elemental, 1);
+    @Override
+    public boolean isIdentified() {
+        return true;
+    }
 
-				for (int i : PathFinder.NEIGHBOURS9){
-					CellEmitter.get(ritualPos+i).burst(ElmoParticle.FACTORY, 10);
-				}
-				Sample.INSTANCE.play(Assets.SND_BURNING);
-			}
-		}
+    @Override
+    public void doDrop(Hero hero) {
+        super.doDrop(hero);
+        checkCandles();
+    }
 
-	}
+    @Override
+    protected void onThrow(int cell) {
+        super.onThrow(cell);
+        checkCandles();
+    }
 }

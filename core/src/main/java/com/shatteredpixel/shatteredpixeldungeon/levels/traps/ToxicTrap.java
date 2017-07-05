@@ -26,17 +26,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
-public class ToxicTrap extends Trap{
+public class ToxicTrap extends Trap {
 
-	{
-		color = GREEN;
-		shape = GRILL;
-	}
+    {
+        color = GREEN;
+        shape = GRILL;
+    }
 
-	@Override
-	public void activate() {
+    @Override
+    public void activate() {
 
-		GameScene.add( Blob.seed( pos, 300 + 20 * Dungeon.depth, ToxicGas.class ) );
+        GameScene.add(Blob.seed(pos, 300 + 20 * Dungeon.depth, ToxicGas.class));
 
-	}
+    }
 }

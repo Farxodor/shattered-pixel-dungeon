@@ -35,49 +35,49 @@ import com.watabou.utils.Random;
 
 public class VaultRoom extends SpecialRoom {
 
-	public void paint( Level level ) {
+    private static Item prize(Level level) {
+        return Generator.random(Random.oneOf(
+                Generator.Category.WAND,
+                Generator.Category.RING,
+                Generator.Category.ARTIFACT
+        ));
+    }
 
-		Painter.fill( level, this, Terrain.WALL );
-		Painter.fill( level, this, 1, Terrain.EMPTY_SP );
-		Painter.fill( level, this, 2, Terrain.EMPTY );
-		
-		int cx = (left + right) / 2;
-		int cy = (top + bottom) / 2;
-		int c = cx + cy * level.width();
-		
-		switch (Random.Int( 3 )) {
-		
-		case 0:
-			level.drop( prize( level ), c ).type = Heap.Type.LOCKED_CHEST;
-			level.addItemToSpawn( new GoldenKey( Dungeon.depth ) );
-			break;
-			
-		case 1:
-			Item i1, i2;
-			do {
-				i1 = prize( level );
-				i2 = prize( level );
-			} while (i1.getClass() == i2.getClass());
-			level.drop( i1, c ).type = Heap.Type.CRYSTAL_CHEST;
-			level.drop( i2, c + PathFinder.NEIGHBOURS8[Random.Int( 8 )]).type = Heap.Type.CRYSTAL_CHEST;
-			level.addItemToSpawn( new GoldenKey( Dungeon.depth ) );
-			break;
-			
-		case 2:
-			level.drop( prize( level ), c );
-			Painter.set( level, c, Terrain.PEDESTAL );
-			break;
-		}
-		
-		entrance().set( Door.Type.LOCKED );
-		level.addItemToSpawn( new IronKey( Dungeon.depth ) );
-	}
-	
-	private static Item prize( Level level ) {
-		return Generator.random( Random.oneOf(
-			Generator.Category.WAND,
-			Generator.Category.RING,
-			Generator.Category.ARTIFACT
-		) );
-	}
+    public void paint(Level level) {
+
+        Painter.fill(level, this, Terrain.WALL);
+        Painter.fill(level, this, 1, Terrain.EMPTY_SP);
+        Painter.fill(level, this, 2, Terrain.EMPTY);
+
+        int cx = (left + right) / 2;
+        int cy = (top + bottom) / 2;
+        int c = cx + cy * level.width();
+
+        switch (Random.Int(3)) {
+
+            case 0:
+                level.drop(prize(level), c).type = Heap.Type.LOCKED_CHEST;
+                level.addItemToSpawn(new GoldenKey(Dungeon.depth));
+                break;
+
+            case 1:
+                Item i1, i2;
+                do {
+                    i1 = prize(level);
+                    i2 = prize(level);
+                } while (i1.getClass() == i2.getClass());
+                level.drop(i1, c).type = Heap.Type.CRYSTAL_CHEST;
+                level.drop(i2, c + PathFinder.NEIGHBOURS8[Random.Int(8)]).type = Heap.Type.CRYSTAL_CHEST;
+                level.addItemToSpawn(new GoldenKey(Dungeon.depth));
+                break;
+
+            case 2:
+                level.drop(prize(level), c);
+                Painter.set(level, c, Terrain.PEDESTAL);
+                break;
+        }
+
+        entrance().set(Door.Type.LOCKED);
+        level.addItemToSpawn(new IronKey(Dungeon.depth));
+    }
 }

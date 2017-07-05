@@ -31,35 +31,35 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ImpSprite;
 
 public class ImpShopkeeper extends Shopkeeper {
 
-	{
-		spriteClass = ImpSprite.class;
-	}
-	
-	private boolean seenBefore = false;
-	
-	@Override
-	protected boolean act() {
+    private boolean seenBefore = false;
 
-		if (!seenBefore && Dungeon.visible[pos]) {
-			yell( Messages.get(this, "greetings", Dungeon.hero.givenName() ) );
-			seenBefore = true;
-		}
-		
-		return super.act();
-	}
-	
-	@Override
-	public void flee() {
-		for (Heap heap: Dungeon.level.heaps.values()) {
-			if (heap.type == Heap.Type.FOR_SALE) {
-				CellEmitter.get( heap.pos ).burst( ElmoParticle.FACTORY, 4 );
-				heap.destroy();
-			}
-		}
-		
-		destroy();
-		
-		sprite.emitter().burst( Speck.factory( Speck.WOOL ), 15 );
-		sprite.killAndErase();
-	}
+    {
+        spriteClass = ImpSprite.class;
+    }
+
+    @Override
+    protected boolean act() {
+
+        if (!seenBefore && Dungeon.visible[pos]) {
+            yell(Messages.get(this, "greetings", Dungeon.hero.givenName()));
+            seenBefore = true;
+        }
+
+        return super.act();
+    }
+
+    @Override
+    public void flee() {
+        for (Heap heap : Dungeon.level.heaps.values()) {
+            if (heap.type == Heap.Type.FOR_SALE) {
+                CellEmitter.get(heap.pos).burst(ElmoParticle.FACTORY, 4);
+                heap.destroy();
+            }
+        }
+
+        destroy();
+
+        sprite.emitter().burst(Speck.factory(Speck.WOOL), 15);
+        sprite.killAndErase();
+    }
 }

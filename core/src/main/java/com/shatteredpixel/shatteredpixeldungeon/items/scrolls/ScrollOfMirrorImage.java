@@ -35,49 +35,49 @@ import java.util.ArrayList;
 
 public class ScrollOfMirrorImage extends Scroll {
 
-	{
-		initials = 4;
-	}
+    private static final int NIMAGES = 3;
 
-	private static final int NIMAGES	= 3;
-	
-	@Override
-	protected void doRead() {
-		
-		ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
-		
-		for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
-			int p = curUser.pos + PathFinder.NEIGHBOURS8[i];
-			if (Actor.findChar( p ) == null && (Level.passable[p] || Level.avoid[p])) {
-				respawnPoints.add( p );
-			}
-		}
-		
-		int nImages = NIMAGES;
-		while (nImages > 0 && respawnPoints.size() > 0) {
-			int index = Random.index( respawnPoints );
-			
-			MirrorImage mob = new MirrorImage();
-			mob.duplicate( curUser );
-			GameScene.add( mob );
-			ScrollOfTeleportation.appear( mob, respawnPoints.get( index ) );
-			
-			respawnPoints.remove( index );
-			nImages--;
-		}
-		
-		if (nImages < NIMAGES) {
-			setKnown();
-		}
-		
-		Sample.INSTANCE.play( Assets.SND_READ );
-		Invisibility.dispel();
+    {
+        initials = 4;
+    }
 
-		readAnimation();
-	}
+    @Override
+    protected void doRead() {
 
-	@Override
-	public int price() {
-		return isKnown() ? 30 * quantity : super.price();
-	}
+        ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+
+        for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+            int p = curUser.pos + PathFinder.NEIGHBOURS8[i];
+            if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
+                respawnPoints.add(p);
+            }
+        }
+
+        int nImages = NIMAGES;
+        while (nImages > 0 && respawnPoints.size() > 0) {
+            int index = Random.index(respawnPoints);
+
+            MirrorImage mob = new MirrorImage();
+            mob.duplicate(curUser);
+            GameScene.add(mob);
+            ScrollOfTeleportation.appear(mob, respawnPoints.get(index));
+
+            respawnPoints.remove(index);
+            nImages--;
+        }
+
+        if (nImages < NIMAGES) {
+            setKnown();
+        }
+
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
+
+        readAnimation();
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 30 * quantity : super.price();
+    }
 }

@@ -35,67 +35,67 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 
 public class ScrollOfTeleportation extends Scroll {
 
-	{
-		initials = 9;
-	}
+    {
+        initials = 9;
+    }
 
-	@Override
-	protected void doRead() {
+    public static void teleportHero(Hero hero) {
 
-		Sample.INSTANCE.play( Assets.SND_READ );
-		Invisibility.dispel();
-		
-		teleportHero( curUser );
-		setKnown();
+        int count = 10;
+        int pos;
+        do {
+            pos = Dungeon.level.randomRespawnCell();
+            if (count-- <= 0) {
+                break;
+            }
+        } while (pos == -1);
 
-		readAnimation();
-	}
-	
-	public static void teleportHero( Hero  hero ) {
+        if (pos == -1 || Dungeon.bossLevel()) {
 
-		int count = 10;
-		int pos;
-		do {
-			pos = Dungeon.level.randomRespawnCell();
-			if (count-- <= 0) {
-				break;
-			}
-		} while (pos == -1);
-		
-		if (pos == -1 || Dungeon.bossLevel()) {
-			
-			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
-			
-		} else {
+            GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
 
-			appear( hero, pos );
-			Dungeon.level.press( pos, hero );
-			Dungeon.observe();
-			GameScene.updateFog();
-			
-			GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-			
-		}
-	}
+        } else {
 
-	public static void appear( Char ch, int pos ) {
+            appear(hero, pos);
+            Dungeon.level.press(pos, hero);
+            Dungeon.observe();
+            GameScene.updateFog();
 
-		ch.sprite.interruptMotion();
+            GLog.i(Messages.get(ScrollOfTeleportation.class, "tele"));
 
-		ch.move( pos );
-		ch.sprite.place( pos );
+        }
+    }
 
-		if (ch.invisible == 0) {
-			ch.sprite.alpha( 0 );
-			ch.sprite.parent.add( new AlphaTweener( ch.sprite, 1, 0.4f ) );
-		}
+    public static void appear(Char ch, int pos) {
 
-		ch.sprite.emitter().start( Speck.factory(Speck.LIGHT), 0.2f, 3 );
-		Sample.INSTANCE.play( Assets.SND_TELEPORT );
-	}
-	
-	@Override
-	public int price() {
-		return isKnown() ? 30 * quantity : super.price();
-	}
+        ch.sprite.interruptMotion();
+
+        ch.move(pos);
+        ch.sprite.place(pos);
+
+        if (ch.invisible == 0) {
+            ch.sprite.alpha(0);
+            ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
+        }
+
+        ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
+        Sample.INSTANCE.play(Assets.SND_TELEPORT);
+    }
+
+    @Override
+    protected void doRead() {
+
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
+
+        teleportHero(curUser);
+        setKnown();
+
+        readAnimation();
+    }
+
+    @Override
+    public int price() {
+        return isKnown() ? 30 * quantity : super.price();
+    }
 }

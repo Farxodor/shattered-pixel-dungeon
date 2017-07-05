@@ -34,67 +34,65 @@ import com.watabou.utils.Random;
 
 public class FireImbue extends Buff {
 
-	public static final float DURATION	= 30f;
+    public static final float DURATION = 30f;
+    private static final String LEFT = "left";
+    protected float left;
 
-	protected float left;
-
-	private static final String LEFT	= "left";
-
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( LEFT, left );
-
-	}
-
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		left = bundle.getFloat( LEFT );
-	}
-
-	public void set( float duration ) {
-		this.left = duration;
-	}
+    {
+        immunities.add(Burning.class);
+    }
 
     @Override
-	public boolean act() {
-		if (Dungeon.level.map[target.pos] == Terrain.GRASS) {
-			Level.set(target.pos, Terrain.EMBERS);
-			GameScene.updateMap(target.pos);
-		}
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(LEFT, left);
 
-		spend(TICK);
-		left -= TICK;
-		if (left <= 0)
-			detach();
+    }
 
-		return true;
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        left = bundle.getFloat(LEFT);
+    }
 
-	public void proc(Char enemy){
-		if (Random.Int(2) == 0)
-			Buff.affect( enemy, Burning.class ).reignite( enemy );
+    public void set(float duration) {
+        this.left = duration;
+    }
 
-		enemy.sprite.emitter().burst( FlameParticle.FACTORY, 2 );
-	}
+    @Override
+    public boolean act() {
+        if (Dungeon.level.map[target.pos] == Terrain.GRASS) {
+            Level.set(target.pos, Terrain.EMBERS);
+            GameScene.updateMap(target.pos);
+        }
 
-	@Override
-	public int icon() {
-		return BuffIndicator.FIRE;
-	}
+        spend(TICK);
+        left -= TICK;
+        if (left <= 0)
+            detach();
 
-	@Override
-	public String toString() {
-		return Messages.get(this, "name");
-	}
+        return true;
+    }
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", dispTurns(left));
-	}
+    public void proc(Char enemy) {
+        if (Random.Int(2) == 0)
+            Buff.affect(enemy, Burning.class).reignite(enemy);
 
-	{
-		immunities.add( Burning.class );
-	}
+        enemy.sprite.emitter().burst(FlameParticle.FACTORY, 2);
+    }
+
+    @Override
+    public int icon() {
+        return BuffIndicator.FIRE;
+    }
+
+    @Override
+    public String toString() {
+        return Messages.get(this, "name");
+    }
+
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc", dispTurns(left));
+    }
 }

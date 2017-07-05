@@ -43,68 +43,68 @@ import com.watabou.utils.Random;
 
 public class HighGrass {
 
-	public static void trample( Level level, int pos, Char ch ) {
-		
-		Level.set( pos, Terrain.GRASS );
-		GameScene.updateMap( pos );
+    public static void trample(Level level, int pos, Char ch) {
 
-		if (!Dungeon.isChallenged( Challenges.NO_HERBALISM )) {
-			int naturalismLevel = 0;
+        Level.set(pos, Terrain.GRASS);
+        GameScene.updateMap(pos);
 
-			if (ch != null) {
-				SandalsOfNature.Naturalism naturalism = ch.buff( SandalsOfNature.Naturalism.class );
-				if (naturalism != null) {
-					if (!naturalism.isCursed()) {
-						naturalismLevel = naturalism.itemLevel() + 1;
-						naturalism.charge();
-					} else {
-						naturalismLevel = -1;
-					}
-				}
-			}
+        if (!Dungeon.isChallenged(Challenges.NO_HERBALISM)) {
+            int naturalismLevel = 0;
 
-			if (naturalismLevel >= 0) {
-				// Seed, scales from 1/16 to 1/4
-				if (Random.Int(16 - naturalismLevel * 3) == 0) {
-					Item seed = Generator.random(Generator.Category.SEED);
+            if (ch != null) {
+                SandalsOfNature.Naturalism naturalism = ch.buff(SandalsOfNature.Naturalism.class);
+                if (naturalism != null) {
+                    if (!naturalism.isCursed()) {
+                        naturalismLevel = naturalism.itemLevel() + 1;
+                        naturalism.charge();
+                    } else {
+                        naturalismLevel = -1;
+                    }
+                }
+            }
 
-					if (seed instanceof BlandfruitBush.Seed) {
-						if (Random.Int(15) - Dungeon.limitedDrops.blandfruitSeed.count >= 0) {
-							level.drop(seed, pos).sprite.drop();
-							Dungeon.limitedDrops.blandfruitSeed.count++;
-						}
-					} else
-						level.drop(seed, pos).sprite.drop();
-				}
+            if (naturalismLevel >= 0) {
+                // Seed, scales from 1/16 to 1/4
+                if (Random.Int(16 - naturalismLevel * 3) == 0) {
+                    Item seed = Generator.random(Generator.Category.SEED);
 
-				// Dew, scales from 1/6 to 1/3
-				if (Random.Int(24 - naturalismLevel*3) <= 3) {
-					level.drop(new Dewdrop(), pos).sprite.drop();
-				}
-			}
-		}
+                    if (seed instanceof BlandfruitBush.Seed) {
+                        if (Random.Int(15) - Dungeon.limitedDrops.blandfruitSeed.count >= 0) {
+                            level.drop(seed, pos).sprite.drop();
+                            Dungeon.limitedDrops.blandfruitSeed.count++;
+                        }
+                    } else
+                        level.drop(seed, pos).sprite.drop();
+                }
 
-		int leaves = 4;
-		
+                // Dew, scales from 1/6 to 1/3
+                if (Random.Int(24 - naturalismLevel * 3) <= 3) {
+                    level.drop(new Dewdrop(), pos).sprite.drop();
+                }
+            }
+        }
 
-		if (ch instanceof Hero) {
-			Hero hero = (Hero)ch;
+        int leaves = 4;
 
-			// Barkskin
-			if (hero.subClass == HeroSubClass.WARDEN) {
-				Buff.affect(ch, Barkskin.class).level(ch.HT / 3);
-				leaves += 4;
-			}
 
-			//Camouflage
-			if (hero.belongings.armor != null && hero.belongings.armor.hasGlyph(Camouflage.class)){
-				Buff.affect(hero, Camouflage.Camo.class).set(3 + hero.belongings.armor.level());
-				leaves += 4;
-			}
-		}
-		
-		CellEmitter.get( pos ).burst( LeafParticle.LEVEL_SPECIFIC, leaves );
-		if (Dungeon.visible[pos])
-			Dungeon.observe();
-	}
+        if (ch instanceof Hero) {
+            Hero hero = (Hero) ch;
+
+            // Barkskin
+            if (hero.subClass == HeroSubClass.WARDEN) {
+                Buff.affect(ch, Barkskin.class).level(ch.HT / 3);
+                leaves += 4;
+            }
+
+            //Camouflage
+            if (hero.belongings.armor != null && hero.belongings.armor.hasGlyph(Camouflage.class)) {
+                Buff.affect(hero, Camouflage.Camo.class).set(3 + hero.belongings.armor.level());
+                leaves += 4;
+            }
+        }
+
+        CellEmitter.get(pos).burst(LeafParticle.LEVEL_SPECIFIC, leaves);
+        if (Dungeon.visible[pos])
+            Dungeon.observe();
+    }
 }

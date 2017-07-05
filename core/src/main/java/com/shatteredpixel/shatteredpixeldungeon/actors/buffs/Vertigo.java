@@ -28,29 +28,29 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 public class Vertigo extends FlavourBuff {
 
-	public static final float DURATION	= 10f;
+    public static final float DURATION = 10f;
 
-	{
-		type = buffType.NEGATIVE;
-	}
+    {
+        type = buffType.NEGATIVE;
+    }
 
-	@Override
-	public int icon() {
-		return BuffIndicator.VERTIGO;
-	}
+    public static float duration(Char ch) {
+        Resistance r = ch.buff(Resistance.class);
+        return r != null ? r.durationFactor() * DURATION : DURATION;
+    }
 
-	@Override
-	public String toString() {
-		return Messages.get(this, "name");
-	}
+    @Override
+    public int icon() {
+        return BuffIndicator.VERTIGO;
+    }
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", dispTurns());
-	}
+    @Override
+    public String toString() {
+        return Messages.get(this, "name");
+    }
 
-	public static float duration( Char ch ) {
-		Resistance r = ch.buff( Resistance.class );
-		return r != null ? r.durationFactor() * DURATION : DURATION;
-	}
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc", dispTurns());
+    }
 }

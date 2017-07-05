@@ -37,67 +37,67 @@ import com.watabou.utils.Callback;
 
 public class GrimTrap extends Trap {
 
-	{
-		color = GREY;
-		shape = LARGE_DOT;
-	}
+    {
+        color = GREY;
+        shape = LARGE_DOT;
+    }
 
-	@Override
-	public Trap hide() {
-		//cannot hide this trap
-		return reveal();
-	}
+    @Override
+    public Trap hide() {
+        //cannot hide this trap
+        return reveal();
+    }
 
-	@Override
-	public void activate() {
-		Char target = Actor.findChar(pos);
+    @Override
+    public void activate() {
+        Char target = Actor.findChar(pos);
 
-		//find the closest char that can be aimed at
-		if (target == null){
-			for (Char ch : Actor.chars()){
-				Ballistica bolt = new Ballistica(pos, ch.pos, Ballistica.PROJECTILE);
-				if (bolt.collisionPos == ch.pos &&
-						(target == null || Dungeon.level.distance(pos, ch.pos) < Dungeon.level.distance(pos, target.pos))){
-					target = ch;
-				}
-			}
-		}
+        //find the closest char that can be aimed at
+        if (target == null) {
+            for (Char ch : Actor.chars()) {
+                Ballistica bolt = new Ballistica(pos, ch.pos, Ballistica.PROJECTILE);
+                if (bolt.collisionPos == ch.pos &&
+                        (target == null || Dungeon.level.distance(pos, ch.pos) < Dungeon.level.distance(pos, target.pos))) {
+                    target = ch;
+                }
+            }
+        }
 
-		if (target != null){
-			final Char finalTarget = target;
-			final GrimTrap trap = this;
-			((MagicMissile)target.sprite.parent.recycle(MagicMissile.class)).reset(
-					MagicMissile.SHADOW,
-					DungeonTilemap.tileCenterToWorld(pos),
-					target.sprite.center(),
-					new Callback() {
-						@Override
-						public void call() {
-							if (!finalTarget.isAlive()) return;
-							if (finalTarget == Dungeon.hero) {
-								//almost kill the player
-								if (((float)finalTarget.HP/finalTarget.HT) >= 0.9f){
-									finalTarget.damage((finalTarget.HP-1), trap);
-								//kill 'em
-								} else {
-									finalTarget.damage(finalTarget.HP, trap);
-								}
-								Sample.INSTANCE.play(Assets.SND_CURSED);
-								if (!finalTarget.isAlive()) {
-									Dungeon.fail( GrimTrap.class );
-									GLog.n( Messages.get(GrimTrap.class, "ondeath") );
-								}
-							} else {
-								finalTarget.damage(finalTarget.HP, this);
-								Sample.INSTANCE.play(Assets.SND_BURNING);
-							}
-							finalTarget.sprite.emitter().burst(ShadowParticle.UP, 10);
-							if (!finalTarget.isAlive()) finalTarget.next();
-						}
-					});
-		} else {
-			CellEmitter.get(pos).burst(ShadowParticle.UP, 10);
-			Sample.INSTANCE.play(Assets.SND_BURNING);
-		}
-	}
+        if (target != null) {
+            final Char finalTarget = target;
+            final GrimTrap trap = this;
+            ((MagicMissile) target.sprite.parent.recycle(MagicMissile.class)).reset(
+                    MagicMissile.SHADOW,
+                    DungeonTilemap.tileCenterToWorld(pos),
+                    target.sprite.center(),
+                    new Callback() {
+                        @Override
+                        public void call() {
+                            if (!finalTarget.isAlive()) return;
+                            if (finalTarget == Dungeon.hero) {
+                                //almost kill the player
+                                if (((float) finalTarget.HP / finalTarget.HT) >= 0.9f) {
+                                    finalTarget.damage((finalTarget.HP - 1), trap);
+                                    //kill 'em
+                                } else {
+                                    finalTarget.damage(finalTarget.HP, trap);
+                                }
+                                Sample.INSTANCE.play(Assets.SND_CURSED);
+                                if (!finalTarget.isAlive()) {
+                                    Dungeon.fail(GrimTrap.class);
+                                    GLog.n(Messages.get(GrimTrap.class, "ondeath"));
+                                }
+                            } else {
+                                finalTarget.damage(finalTarget.HP, this);
+                                Sample.INSTANCE.play(Assets.SND_BURNING);
+                            }
+                            finalTarget.sprite.emitter().burst(ShadowParticle.UP, 10);
+                            if (!finalTarget.isAlive()) finalTarget.next();
+                        }
+                    });
+        } else {
+            CellEmitter.get(pos).burst(ShadowParticle.UP, 10);
+            Sample.INSTANCE.play(Assets.SND_BURNING);
+        }
+    }
 }
