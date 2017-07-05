@@ -158,7 +158,7 @@ import java.util.LinkedHashMap;
 public class Generator {
 
 	public enum Category {
-		WEAPON	( 100,	Weapon.class ),
+		WEAPON	( StartScene.curClass == HeroClass.MAGE ? 70 : 100,	Weapon.class ),
 		WEP_T1	( 0, 	Weapon.class),
 		WEP_T2	( 0,	Weapon.class),
 		WEP_T3	( 0, 	Weapon.class),
@@ -167,7 +167,7 @@ public class Generator {
 		ARMOR	( 60,	Armor.class ),
 		POTION	( 500,	Potion.class ),
 		SCROLL	( 400,	Scroll.class ),
-		WAND	( StartScene.curClass == HeroClass.MAGE ? 100 : 40,	Wand.class ),
+		WAND	( StartScene.curClass == HeroClass.MAGE ? 70 : 40,	Wand.class ),
 		RING	( 15,	Ring.class ),
 		ARTIFACT( 15,   Artifact.class),
 		SEED	( 50,	Plant.Seed.class ),
