@@ -131,23 +131,7 @@ public class Tengu extends Mob {
 
 	@Override
 	public void die( Object cause ) {
-
-		Badges.Badge badgeToCheck = null;
-		switch (Dungeon.hero.heroClass) {
-			case WARRIOR:
-				badgeToCheck = Badges.Badge.MASTERY_WARRIOR;
-				break;
-			case MAGE:
-				badgeToCheck = Badges.Badge.MASTERY_MAGE;
-				break;
-			case ROGUE:
-				badgeToCheck = Badges.Badge.MASTERY_ROGUE;
-				break;
-			case HUNTRESS:
-				badgeToCheck = Badges.Badge.MASTERY_HUNTRESS;
-				break;
-		}
-		if (!Badges.isUnlocked( badgeToCheck ) || Dungeon.hero.subClass != HeroSubClass.NONE) {
+		if (Dungeon.hero.subClass == HeroSubClass.NONE && Dungeon.hero.belongings.getItem(TomeOfMastery.class) == null) {
 			Dungeon.level.drop( new TomeOfMastery(), pos ).sprite.drop();
 		}
 		
