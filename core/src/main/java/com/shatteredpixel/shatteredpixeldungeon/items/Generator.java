@@ -145,6 +145,7 @@ import com.shatteredpixel.shatteredpixeldungeon.plants.Sorrowmoss;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Starflower;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Stormvine;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Sungrass;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.StartScene;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
@@ -166,7 +167,7 @@ public class Generator {
 		ARMOR	( 60,	Armor.class ),
 		POTION	( 500,	Potion.class ),
 		SCROLL	( 400,	Scroll.class ),
-		WAND	( Dungeon.hero.heroClass == HeroClass.MAGE ? 100 : 40,	Wand.class ),
+		WAND	( StartScene.curClass == HeroClass.MAGE ? 100 : 40,	Wand.class ),
 		RING	( 15,	Ring.class ),
 		ARTIFACT( 15,   Artifact.class),
 		SEED	( 50,	Plant.Seed.class ),
