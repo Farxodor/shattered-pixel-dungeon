@@ -57,6 +57,8 @@ public class MagesStaff extends MeleeWeapon {
 	public static final String AC_IMBUE = "IMBUE";
 	public static final String AC_ZAP	= "ZAP";
 
+	private static final int SCALING_CAP = 3;
+
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
 
 	{
@@ -77,8 +79,17 @@ public class MagesStaff extends MeleeWeapon {
 
 	@Override
 	public int max(int lvl) {
-		return  4*(tier+1) +    //8 base damage, down from 10
-				lvl*(tier+1);   //scaling unaffected
+		if (Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
+			int scalingLevels = Math.min(SCALING_CAP, lvl);
+			int flatLevels = Math.max(0, lvl - SCALING_CAP);
+
+			return 4 * (tier + 1) + //8 base damage, down from 10
+					(scalingLevels * (scalingLevels + 3) / 2) + //Each upgrade is stronger than the last (+2, +3, +4, ...)
+					(SCALING_CAP + 1) * flatLevels; //To a max of +6
+		}
+
+		return 4 * (tier + 1) +    //8 base damage, down from 10
+				lvl * (tier + 1);   //scaling unaffected
 	}
 
 	public MagesStaff(Wand wand){

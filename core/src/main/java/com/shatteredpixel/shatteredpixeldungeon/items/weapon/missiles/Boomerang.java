@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -50,24 +51,39 @@ public class Boomerang extends MissileWeapon {
 		return actions;
 	}
 
-	@Override
-	public int min(int lvl) {
-		return  1 +
-				lvl;
-	}
+    private int getTier() {
+        if(Statistics.deepestFloor > 25)
+            return 6; //Player beat yog, enjoy OP weapon
+        else if(Statistics.deepestFloor > 20)
+            return 5;
+        else if(Statistics.deepestFloor > 15)
+            return 4;
+        else if(Statistics.deepestFloor > 10)
+            return 3;
+        else if(Statistics.deepestFloor > 5)
+            return 2;
+        return 1;
+    }
 
-	@Override
-	public int max(int lvl) {
-		return  5 +     //half the base damage of a tier-1 weapon
-				2 * lvl;//scales the same as a tier 1 weapon
-	}
+    @Override
+    public int min(int lvl) {
+        return getTier() +
+                lvl;
+    }
 
-	@Override
-	public int STRReq(int lvl) {
-		lvl = Math.max(0, lvl);
-		//strength req decreases at +1,+3,+6,+10,etc.
-		return 10 - (int)(Math.sqrt(8 * lvl + 1) - 1)/2;
-	}
+    @Override
+    public int max(int lvl) {
+        return (5 * (getTier() + 1) + //Reduced base damage
+                lvl * (getTier() + 1))
+                / 2; //Reduced damage
+    }
+
+    @Override
+    public int STRReq(int lvl) {
+        lvl = Math.max(0, lvl);
+        //strength req decreases at +1,+3,+6,+10,etc.
+        return (8 + getTier() * 2)  - (int) (Math.sqrt(8 * lvl + 1) - 1) / 2;
+    }
 
 	@Override
 	public boolean isUpgradable() {

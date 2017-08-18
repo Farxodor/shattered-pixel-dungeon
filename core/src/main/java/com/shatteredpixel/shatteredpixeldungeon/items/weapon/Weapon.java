@@ -209,11 +209,11 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	public Item upgrade(boolean enchant ) {
 
-		if (enchant && (enchantment == null || enchantment.curse())){
+		if (enchant) {
 			enchant( Enchantment.random() );
-		} else if (!enchant && Random.Float() > Math.pow(0.9, level())){
-			enchant(null);
-		}
+		} /*else if (!enchant && Random.Float() > Math.pow(0.9, level())) {
+            enchant(null);
+        }*/
 		
 		cursed = false;
 		
