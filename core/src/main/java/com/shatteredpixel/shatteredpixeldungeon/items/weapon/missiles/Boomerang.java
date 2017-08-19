@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -33,7 +34,6 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import java.util.ArrayList;
 
 public class Boomerang extends MissileWeapon {
-    private static final int SCALING_CAP = 6;
     private boolean throwEquiped;
 
     {
@@ -52,27 +52,41 @@ public class Boomerang extends MissileWeapon {
         return actions;
     }
 
+    private int getTier() {
+        //weapon scales with strength - like ring of force
+        //return (int)Math.max(1, (Dungeon.hero.STR() - 9) / 2f);
+
+        if(Statistics.deepestFloor > 25)
+            return 6; //Player beat yog, enjoy OP weapon
+        else if(Statistics.deepestFloor > 20)
+            return 5;
+        else if(Statistics.deepestFloor > 15)
+            return 4;
+        else if(Statistics.deepestFloor > 10)
+            return 3;
+        else if(Statistics.deepestFloor > 5)
+            return 2;
+        return 1;
+    }
+
     @Override
     public int min(int lvl) {
-        return 1 +
+        return getTier() +
                 lvl;
     }
 
     @Override
     public int max(int lvl) {
-        int scalingLevels = Math.min(SCALING_CAP, lvl);
-        int flatLevels = Math.max(0, lvl - SCALING_CAP);
-
-        return 5 +     //half the base damage of a tier-1 weapon
-                (scalingLevels * (scalingLevels + 3) / 2) + //Each upgrade is stronger than the last (+2, +3, +4, ...)
-                (SCALING_CAP + 1) * flatLevels; //To a max of +7
+        return (5 * (getTier() + 1) + //Reduced base damage
+                lvl * (getTier() + 1))
+                / 2; //Reduced damage
     }
 
     @Override
     public int STRReq(int lvl) {
         lvl = Math.max(0, lvl);
         //strength req decreases at +1,+3,+6,+10,etc.
-        return 10 - (int) (Math.sqrt(8 * lvl + 1) - 1) / 2;
+        return (8 + getTier() * 2)  - (int) (Math.sqrt(8 * lvl + 1) - 1) / 2;
     }
 
     @Override

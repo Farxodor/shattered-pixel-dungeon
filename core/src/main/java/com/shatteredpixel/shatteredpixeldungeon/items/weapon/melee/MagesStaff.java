@@ -54,7 +54,7 @@ public class MagesStaff extends MeleeWeapon {
 
     public static final String AC_IMBUE = "IMBUE";
     public static final String AC_ZAP = "ZAP";
-    private static final int SCALING_CAP = 5;
+    private static final int SCALING_CAP = 3;
     private static final float STAFF_SCALE_FACTOR = 0.70f;
     private static final String WAND = "wand";
     private Wand wand;
@@ -138,7 +138,6 @@ public class MagesStaff extends MeleeWeapon {
         image = ItemSpriteSheet.MAGES_STAFF;
 
         tier = 1;
-
         defaultAction = AC_ZAP;
         usesTargeting = true;
 
@@ -173,6 +172,14 @@ public class MagesStaff extends MeleeWeapon {
 
         return 4 * (tier + 1) +    //8 base damage, down from 10
                 lvl * (tier + 1);   //scaling unaffected
+    }
+
+    @Override
+    public float accuracyFactor(Hero hero) {
+        if (Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
+            return 1.1f;
+        }
+        return super.accuracyFactor(hero);
     }
 
     @Override
