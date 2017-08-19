@@ -34,7 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Brimstone;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.ChargrilledMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
-import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements.Resistance;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicalInfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
@@ -48,154 +48,155 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 public class Burning extends Buff implements Hero.Doom {
+	
+	private static final float DURATION = 8f;
+	
+	private float left;
+	
+	private static final String LEFT	= "left";
 
-    private static final float DURATION = 8f;
-    private static final String LEFT = "left";
-    private float left;
+	{
+		type = buffType.NEGATIVE;
+	}
+	
+	@Override
+	public void storeInBundle( Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( LEFT, left );
+	}
+	
+	@Override
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle(bundle);
+		left = bundle.getFloat( LEFT );
+	}
 
-    {
-        type = buffType.NEGATIVE;
-    }
+	@Override
+	public boolean act() {
+		
+		if (target.isAlive()) {
 
-    public static float duration(Char ch) {
-        Resistance r = ch.buff(Resistance.class);
-        return r != null ? r.durationFactor() * DURATION : DURATION;
-    }
+			//maximum damage scales from 6 to 2 depending on remaining hp.
+			int maxDmg = 3 + Math.round( 4 * target.HP / (float)target.HT );
+			int damage = Random.Int( 1, maxDmg );
+			Buff.detach( target, Chill.class);
 
-    @Override
-    public void storeInBundle(Bundle bundle) {
-        super.storeInBundle(bundle);
-        bundle.put(LEFT, left);
-    }
+			if (target instanceof Hero) {
 
-    @Override
-    public void restoreFromBundle(Bundle bundle) {
-        super.restoreFromBundle(bundle);
-        left = bundle.getFloat(LEFT);
-    }
+				Hero hero = (Hero)target;
 
-    @Override
-    public boolean act() {
+				if (hero.belongings.armor != null && hero.belongings.armor.hasGlyph(Brimstone.class)){
 
-        if (target.isAlive()) {
+					Buff.affect(target, Brimstone.BrimstoneShield.class);
 
-            //maximum damage scales from 6 to 2 depending on remaining hp.
-            int maxDmg = 3 + Math.round(4 * target.HP / (float) target.HT);
-            int damage = Random.Int(1, maxDmg);
-            Buff.detach(target, Chill.class);
+				} else {
 
-            if (target instanceof Hero) {
+					hero.damage( damage, this );
+					Item item = hero.belongings.randomUnequipped();
+					if (item instanceof Scroll
+							&& !(item instanceof ScrollOfUpgrade || item instanceof ScrollOfMagicalInfusion)) {
 
-                Hero hero = (Hero) target;
+						item = item.detach( hero.belongings.backpack );
+						GLog.w( Messages.get(this, "burnsup", Messages.capitalize(item.toString())) );
 
-                if (hero.belongings.armor != null && hero.belongings.armor.hasGlyph(Brimstone.class)) {
+						Heap.burnFX( hero.pos );
 
-                    Buff.affect(target, Brimstone.BrimstoneShield.class);
+					} else if (item instanceof MysteryMeat) {
 
-                } else {
+						item = item.detach( hero.belongings.backpack );
+						ChargrilledMeat steak = new ChargrilledMeat();
+						if (!steak.collect( hero.belongings.backpack )) {
+							Dungeon.level.drop( steak, hero.pos ).sprite.drop();
+						}
+						GLog.w( Messages.get(this, "burnsup", item.toString()) );
 
-                    hero.damage(damage, this);
-                    Item item = hero.belongings.randomUnequipped();
-                    if (item instanceof Scroll
-                            && !(item instanceof ScrollOfUpgrade || item instanceof ScrollOfMagicalInfusion)) {
+						Heap.burnFX( hero.pos );
 
-                        item = item.detach(hero.belongings.backpack);
-                        GLog.w(Messages.get(this, "burnsup", Messages.capitalize(item.toString())));
+					}
 
-                        Heap.burnFX(hero.pos);
+				}
+				
+			} else {
+				target.damage( damage, this );
+			}
 
-                    } else if (item instanceof MysteryMeat) {
+			if (target instanceof Thief) {
 
-                        item = item.detach(hero.belongings.backpack);
-                        ChargrilledMeat steak = new ChargrilledMeat();
-                        if (!steak.collect(hero.belongings.backpack)) {
-                            Dungeon.level.drop(steak, hero.pos).sprite.drop();
-                        }
-                        GLog.w(Messages.get(this, "burnsup", item.toString()));
+				Item item = ((Thief) target).item;
 
-                        Heap.burnFX(hero.pos);
+				if (item instanceof Scroll &&
+						!(item instanceof ScrollOfUpgrade || item instanceof ScrollOfMagicalInfusion)) {
+					target.sprite.emitter().burst( ElmoParticle.FACTORY, 6 );
+					((Thief)target).item = null;
+				}
 
-                    }
+			}
 
-                }
+		} else {
 
-            } else {
-                target.damage(damage, this);
-            }
+			Brimstone.BrimstoneShield brimShield = target.buff(Brimstone.BrimstoneShield.class);
+			if (brimShield != null)
+				brimShield.startDecay();
 
-            if (target instanceof Thief) {
+			detach();
+		}
+		
+		if (Level.flamable[target.pos] && Blob.volumeAt(target.pos, Fire.class) == 0) {
+			GameScene.add( Blob.seed( target.pos, 4, Fire.class ) );
+		}
+		
+		spend( TICK );
+		left -= TICK;
+		
+		if (left <= 0 ||
+			(Level.water[target.pos] && !target.flying)) {
+			
+			detach();
+		}
+		
+		return true;
+	}
+	
+	public void reignite( Char ch ) {
+		left = duration( ch );
+	}
+	
+	@Override
+	public int icon() {
+		return BuffIndicator.FIRE;
+	}
 
-                Item item = ((Thief) target).item;
+	@Override
+	public void fx(boolean on) {
+		if (on) target.sprite.add(CharSprite.State.BURNING);
+		else target.sprite.remove(CharSprite.State.BURNING);
+	}
 
-                if (item instanceof Scroll &&
-                        !(item instanceof ScrollOfUpgrade || item instanceof ScrollOfMagicalInfusion)) {
-                    target.sprite.emitter().burst(ElmoParticle.FACTORY, 6);
-                    ((Thief) target).item = null;
-                }
+	@Override
+	public String heroMessage() {
+		return Messages.get(this, "heromsg");
+	}
 
-            }
+	@Override
+	public String toString() {
+		return Messages.get(this, "name");
+	}
 
-        } else {
+	public static float duration( Char ch ) {
+		return DURATION * RingOfElements.durationFactor( ch );
+	}
 
-            Brimstone.BrimstoneShield brimShield = target.buff(Brimstone.BrimstoneShield.class);
-            if (brimShield != null)
-                brimShield.startDecay();
+	@Override
+	public String desc() {
+		return Messages.get(this, "desc", dispTurns(left));
+	}
 
-            detach();
-        }
-
-        if (Level.flamable[target.pos] && Blob.volumeAt(target.pos, Fire.class) == 0) {
-            GameScene.add(Blob.seed(target.pos, 4, Fire.class));
-        }
-
-        spend(TICK);
-        left -= TICK;
-
-        if (left <= 0 ||
-                (Level.water[target.pos] && !target.flying)) {
-
-            detach();
-        }
-
-        return true;
-    }
-
-    public void reignite(Char ch) {
-        left = duration(ch);
-    }
-
-    @Override
-    public int icon() {
-        return BuffIndicator.FIRE;
-    }
-
-    @Override
-    public void fx(boolean on) {
-        if (on) target.sprite.add(CharSprite.State.BURNING);
-        else target.sprite.remove(CharSprite.State.BURNING);
-    }
-
-    @Override
-    public String heroMessage() {
-        return Messages.get(this, "heromsg");
-    }
-
-    @Override
-    public String toString() {
-        return Messages.get(this, "name");
-    }
-
-    @Override
-    public String desc() {
-        return Messages.get(this, "desc", dispTurns(left));
-    }
-
-    @Override
-    public void onDeath() {
-
-        Badges.validateDeathFromFire();
-
-        Dungeon.fail(getClass());
-        GLog.n(Messages.get(this, "ondeath"));
-    }
+	@Override
+	public void onDeath() {
+		
+		Badges.validateDeathFromFire();
+		
+		Dungeon.fail( getClass() );
+		GLog.n( Messages.get(this, "ondeath") );
+	}
 }

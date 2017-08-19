@@ -34,48 +34,51 @@ import com.watabou.utils.Random;
 
 public class ToxicGas extends Blob implements Hero.Doom {
 
-    @Override
-    protected void evolve() {
-        super.evolve();
+	@Override
+	protected void evolve() {
+		super.evolve();
 
-        int levelDamage = 5 + Dungeon.depth * 5;
+		int levelDamage = 5 + Dungeon.depth * 5;
 
-        Char ch;
-        int cell;
+		Char ch;
+		int cell;
 
-        for (int i = area.left; i < area.right; i++) {
-            for (int j = area.top; j < area.bottom; j++) {
-                cell = i + j * Dungeon.level.width();
-                if (cur[cell] > 0 && (ch = Actor.findChar(cell)) != null) {
-                    int damage = (ch.HT + levelDamage) / 40;
-                    if (Random.Int(40) < (ch.HT + levelDamage) % 40) {
-                        damage++;
-                    }
+		for (int i = area.left; i < area.right; i++){
+			for (int j = area.top; j < area.bottom; j++){
+				cell = i + j*Dungeon.level.width();
+				if (cur[cell] > 0 && (ch = Actor.findChar( cell )) != null) {
+					if (!ch.immunities().contains(this.getClass())) {
 
-                    ch.damage(damage, this);
-                }
-            }
-        }
-    }
+						int damage = (ch.HT + levelDamage) / 40;
+						if (Random.Int( 40 ) < (ch.HT + levelDamage) % 40) {
+							damage++;
+						}
 
-    @Override
-    public void use(BlobEmitter emitter) {
-        super.use(emitter);
+						ch.damage(damage, this);
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void use( BlobEmitter emitter ) {
+		super.use( emitter );
 
-        emitter.pour(Speck.factory(Speck.TOXIC), 0.4f);
-    }
-
-    @Override
-    public String tileDesc() {
-        return Messages.get(this, "desc");
-    }
-
-    @Override
-    public void onDeath() {
-
-        Badges.validateDeathFromGas();
-
-        Dungeon.fail(getClass());
-        GLog.n(Messages.get(this, "ondeath"));
-    }
+		emitter.pour( Speck.factory( Speck.TOXIC ), 0.4f );
+	}
+	
+	@Override
+	public String tileDesc() {
+		return Messages.get(this, "desc");
+	}
+	
+	@Override
+	public void onDeath() {
+		
+		Badges.validateDeathFromGas();
+		
+		Dungeon.fail( getClass() );
+		GLog.n( Messages.get(this, "ondeath") );
+	}
 }

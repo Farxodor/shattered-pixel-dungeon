@@ -22,65 +22,65 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Shadows;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShaftParticle;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class Foliage extends Blob {
+	
+	@Override
+	protected void evolve() {
 
-    @Override
-    protected void evolve() {
+		int[] map = Dungeon.level.map;
+		
+		boolean visible = false;
 
-        int[] map = Dungeon.level.map;
+		int cell;
+		for (int i = area.left; i < area.right; i++) {
+			for (int j = area.top; j < area.bottom; j++) {
+				cell = i + j*Dungeon.level.width();
+				if (cur[cell] > 0) {
 
-        boolean visible = false;
+					off[cell] = cur[cell];
+					volume += off[cell];
 
-        int cell;
-        for (int i = area.left; i < area.right; i++) {
-            for (int j = area.top; j < area.bottom; j++) {
-                cell = i + j * Dungeon.level.width();
-                if (cur[cell] > 0) {
+					if (map[cell] == Terrain.EMBERS) {
+						map[cell] = Terrain.GRASS;
+						GameScene.updateMap(cell);
+					}
 
-                    off[cell] = cur[cell];
-                    volume += off[cell];
+					visible = visible || Dungeon.visible[cell];
 
-                    if (map[cell] == Terrain.EMBERS) {
-                        map[cell] = Terrain.GRASS;
-                        GameScene.updateMap(cell);
-                    }
+				} else {
+					off[cell] = 0;
+				}
+			}
+		}
+		
+		Hero hero = Dungeon.hero;
+		if (hero.isAlive() && hero.visibleEnemies() == 0 && cur[hero.pos] > 0) {
+			Buff.affect( hero, Shadows.class ).prolong();
+		}
 
-                    visible = visible || Dungeon.visible[cell];
-
-                } else {
-                    off[cell] = 0;
-                }
-            }
-        }
-
-        Hero hero = Dungeon.hero;
-        if (hero.isAlive() && hero.visibleEnemies() == 0 && cur[hero.pos] > 0) {
-            Buff.affect(hero, Shadows.class).prolong();
-        }
-
-        if (visible) {
-            Journal.add(Journal.Feature.GARDEN);
-        }
-    }
-
-    @Override
-    public void use(BlobEmitter emitter) {
-        super.use(emitter);
-        emitter.start(ShaftParticle.FACTORY, 0.9f, 0);
-    }
-
-    @Override
-    public String tileDesc() {
-        return Messages.get(this, "desc");
-    }
+		if (visible) {
+			Notes.add( Notes.Landmark.GARDEN );
+		}
+	}
+	
+	@Override
+	public void use( BlobEmitter emitter ) {
+		super.use( emitter );
+		emitter.start( ShaftParticle.FACTORY, 0.9f, 0 );
+	}
+	
+	@Override
+	public String tileDesc() {
+		return Messages.get(this, "desc");
+	}
 }

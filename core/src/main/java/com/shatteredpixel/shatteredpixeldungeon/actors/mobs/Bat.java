@@ -34,71 +34,70 @@ import java.util.HashSet;
 
 public class Bat extends Mob {
 
-    private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+	{
+		spriteClass = BatSprite.class;
+		
+		HP = HT = 30;
+		defenseSkill = 15;
+		baseSpeed = 2f;
+		
+		EXP = 7;
+		maxLvl = 15;
+		
+		flying = true;
+		
+		loot = new PotionOfHealing();
+		lootChance = 0.1667f; //by default, see die()
+	}
+	
+	@Override
+	public int damageRoll() {
+		return Random.NormalIntRange( 5, 18 );
+	}
+	
+	@Override
+	public int attackSkill( Char target ) {
+		return 16;
+	}
+	
+	@Override
+	public int drRoll() {
+		return Random.NormalIntRange(0, 4);
+	}
+	
+	@Override
+	public int attackProc( Char enemy, int damage ) {
+		
+		int reg = Math.min( damage, HT - HP );
+		
+		if (reg > 0) {
+			HP += reg;
+			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+		}
+		
+		return damage;
+	}
 
-    static {
-        RESISTANCES.add(Vampiric.class);
-    }
+	@Override
+	public void die( Object cause ){
+		//sets drop chance
+		lootChance = 1f/((6 + Dungeon.LimitedDrops.BAT_HP.count ));
+		super.die( cause );
+	}
 
-    {
-        spriteClass = BatSprite.class;
-
-        HP = HT = 30;
-        defenseSkill = 15;
-        baseSpeed = 2f;
-
-        EXP = 7;
-        maxLvl = 15;
-
-        flying = true;
-
-        loot = new PotionOfHealing();
-        lootChance = 0.1667f; //by default, see die()
-    }
-
-    @Override
-    public int damageRoll() {
-        return Random.NormalIntRange(5, 18);
-    }
-
-    @Override
-    public int attackSkill(Char target) {
-        return 16;
-    }
-
-    @Override
-    public int drRoll() {
-        return Random.NormalIntRange(0, 4);
-    }
-
-    @Override
-    public int attackProc(Char enemy, int damage) {
-
-        int reg = Math.min(damage, HT - HP);
-
-        if (reg > 0) {
-            HP += reg;
-            sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
-        }
-
-        return damage;
-    }
-
-    @Override
-    public void die(Object cause) {
-        //sets drop chance
-        lootChance = 1f / ((6 + Dungeon.limitedDrops.batHP.count));
-        super.die(cause);
-    }
-
-    @Override
-    protected Item createLoot() {
-        Dungeon.limitedDrops.batHP.count++;
-        return super.createLoot();
-    }
-
-    @Override
-    public HashSet<Class<?>> resistances() {
-        return RESISTANCES;
-    }
+	@Override
+	protected Item createLoot(){
+		Dungeon.LimitedDrops.BAT_HP.count++;
+		return super.createLoot();
+	}
+	
+	private static final HashSet<Class<?>> RESISTANCES = new HashSet<>();
+	static {
+		RESISTANCES.add( Vampiric.class );
+	}
+	
+	@Override
+	public HashSet<Class<?>> resistances() {
+		return RESISTANCES;
+	}
 }

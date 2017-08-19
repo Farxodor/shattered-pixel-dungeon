@@ -32,32 +32,37 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 
 public class ScrollOfMagicalInfusion extends InventoryScroll {
+	
+	{
+		initials = 2;
+		mode = WndBag.Mode.ENCHANTABLE;
 
-    {
-        initials = 2;
-        mode = WndBag.Mode.ENCHANTABLE;
+		bones = true;
+	}
+	
+	@Override
+	protected void onItemSelected( Item item ) {
 
-        bones = true;
-    }
+		if (item instanceof Weapon)
+			((Weapon)item).upgrade(true);
+		else
+			((Armor)item).upgrade(true);
+		
+		GLog.p( Messages.get(this, "infuse", item.name()) );
+		
+		Badges.validateItemLevelAquired(item);
 
-    @Override
-    protected void onItemSelected(Item item) {
+		curUser.sprite.emitter().start(Speck.factory(Speck.UP), 0.2f, 3);
+		Enchanting.show(curUser, item);
+	}
+	
+	@Override
+	public void empoweredRead() {
+		//does nothing for now, this should never happen.
+	}
 
-        if (item instanceof Weapon)
-            ((Weapon) item).upgrade(true);
-        else
-            ((Armor) item).upgrade(true);
-
-        GLog.p(Messages.get(this, "infuse", item.name()));
-
-        Badges.validateItemLevelAquired(item);
-
-        curUser.sprite.emitter().start(Speck.factory(Speck.UP), 0.2f, 3);
-        Enchanting.show(curUser, item);
-    }
-
-    @Override
-    public int price() {
-        return isKnown() ? 100 * quantity : super.price();
-    }
+	@Override
+	public int price() {
+		return isKnown() ? 100 * quantity : super.price();
+	}
 }

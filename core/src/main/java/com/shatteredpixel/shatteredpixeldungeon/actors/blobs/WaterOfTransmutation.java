@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 
-import com.shatteredpixel.shatteredpixeldungeon.Journal;
-import com.shatteredpixel.shatteredpixeldungeon.Journal.Feature;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -41,200 +39,202 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes.Landmark;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
 import com.watabou.utils.Random;
 
 public class WaterOfTransmutation extends WellWater {
+	
+	@Override
+	protected Item affectItem( Item item ) {
+		
+		if (item instanceof MagesStaff) {
+			item = changeStaff( (MagesStaff)item );
+		} else if (item instanceof MeleeWeapon) {
+			item = changeWeapon( (MeleeWeapon)item );
+		} else if (item instanceof Scroll) {
+			item = changeScroll( (Scroll)item );
+		} else if (item instanceof Potion) {
+			item = changePotion( (Potion)item );
+		} else if (item instanceof Ring) {
+			item = changeRing( (Ring)item );
+		} else if (item instanceof Wand) {
+			item = changeWand( (Wand)item );
+		} else if (item instanceof Plant.Seed) {
+			item = changeSeed( (Plant.Seed)item );
+		} else if (item instanceof Artifact) {
+			item = changeArtifact( (Artifact)item );
+		} else {
+			item = null;
+		}
 
-    @Override
-    protected Item affectItem(Item item) {
+		if (item != null) {
+			Notes.remove( Landmark.WELL_OF_TRANSMUTATION );
+		}
 
-        if (item instanceof MagesStaff) {
-            item = changeStaff((MagesStaff) item);
-        } else if (item instanceof MeleeWeapon) {
-            item = changeWeapon((MeleeWeapon) item);
-        } else if (item instanceof Scroll) {
-            item = changeScroll((Scroll) item);
-        } else if (item instanceof Potion) {
-            item = changePotion((Potion) item);
-        } else if (item instanceof Ring) {
-            item = changeRing((Ring) item);
-        } else if (item instanceof Wand) {
-            item = changeWand((Wand) item);
-        } else if (item instanceof Plant.Seed) {
-            item = changeSeed((Plant.Seed) item);
-        } else if (item instanceof Artifact) {
-            item = changeArtifact((Artifact) item);
-        } else {
-            item = null;
-        }
+		return item;
 
-        if (item != null) {
-            Journal.remove(Feature.WELL_OF_TRANSMUTATION);
-        }
+	}
+	
+	@Override
+	public void use( BlobEmitter emitter ) {
+		super.use( emitter );
+		emitter.start( Speck.factory( Speck.CHANGE ), 0.2f, 0 );
+	}
 
-        return item;
+	private MagesStaff changeStaff( MagesStaff staff ){
+		Class<?extends Wand> wandClass = staff.wandClass();
 
-    }
+		if (wandClass == null){
+			return null;
+		} else {
+			Wand n;
+			do {
+				n = (Wand)Generator.random(Category.WAND);
+			} while (n.getClass() == wandClass);
+			n.level(0);
+			staff.imbueWand(n, null);
+		}
 
-    @Override
-    public void use(BlobEmitter emitter) {
-        super.use(emitter);
-        emitter.start(Speck.factory(Speck.CHANGE), 0.2f, 0);
-    }
+		return staff;
+	}
+	
+	private Weapon changeWeapon( MeleeWeapon w ) {
+		
+		Weapon n;
+		Category c = Generator.wepTiers[w.tier-1];
 
-    private MagesStaff changeStaff(MagesStaff staff) {
-        Class<? extends Wand> wandClass = staff.wandClass();
+		do {
+			try {
+				n = (Weapon)c.classes[Random.chances(c.probs)].newInstance();
+			} catch (Exception e) {
+				ShatteredPixelDungeon.reportException(e);
+				return null;
+			}
+		} while (!(n instanceof MeleeWeapon) || n.getClass() == w.getClass());
 
-        if (wandClass == null) {
-            return null;
-        } else {
-            Wand n;
-            do {
-                n = (Wand) Generator.random(Category.WAND);
-            } while (n.getClass() == wandClass);
-            n.level(0);
-            staff.imbueWand(n, null);
-        }
+		int level = w.level();
+		if (level > 0) {
+			n.upgrade( level );
+		} else if (level < 0) {
+			n.degrade( -level );
+		}
 
-        return staff;
-    }
+		n.enchantment = w.enchantment;
+		n.levelKnown = w.levelKnown;
+		n.cursedKnown = w.cursedKnown;
+		n.cursed = w.cursed;
+		n.imbue = w.imbue;
 
-    private Weapon changeWeapon(MeleeWeapon w) {
+		return n;
 
-        Weapon n;
-        Category c = Generator.wepTiers[w.tier - 1];
+	}
+	
+	private Ring changeRing( Ring r ) {
+		Ring n;
+		do {
+			n = (Ring)Generator.random( Category.RING );
+		} while (n.getClass() == r.getClass());
+		
+		n.level(0);
+		
+		int level = r.level();
+		if (level > 0) {
+			n.upgrade( level );
+		} else if (level < 0) {
+			n.degrade( -level );
+		}
+		
+		n.levelKnown = r.levelKnown;
+		n.cursedKnown = r.cursedKnown;
+		n.cursed = r.cursed;
+		
+		return n;
+	}
 
-        do {
-            try {
-                n = (Weapon) c.classes[Random.chances(c.probs)].newInstance();
-            } catch (Exception e) {
-                ShatteredPixelDungeon.reportException(e);
-                return null;
-            }
-        } while (!(n instanceof MeleeWeapon) || n.getClass() == w.getClass());
+	private Artifact changeArtifact( Artifact a ) {
+		Artifact n = Generator.randomArtifact();
 
-        int level = w.level();
-        if (level > 0) {
-            n.upgrade(level);
-        } else if (level < 0) {
-            n.degrade(-level);
-        }
+		if (n != null){
+			n.cursedKnown = a.cursedKnown;
+			n.cursed = a.cursed;
+			n.levelKnown = a.levelKnown;
+			n.transferUpgrade(a.visiblyUpgraded());
+		}
 
-        n.enchantment = w.enchantment;
-        n.levelKnown = w.levelKnown;
-        n.cursedKnown = w.cursedKnown;
-        n.cursed = w.cursed;
-        n.imbue = w.imbue;
-
-        return n;
-
-    }
-
-    private Ring changeRing(Ring r) {
-        Ring n;
-        do {
-            n = (Ring) Generator.random(Category.RING);
-        } while (n.getClass() == r.getClass());
-
-        n.level(0);
-
-        int level = r.level();
-        if (level > 0) {
-            n.upgrade(level);
-        } else if (level < 0) {
-            n.degrade(-level);
-        }
-
-        n.levelKnown = r.levelKnown;
-        n.cursedKnown = r.cursedKnown;
-        n.cursed = r.cursed;
-
-        return n;
-    }
-
-    private Artifact changeArtifact(Artifact a) {
-        Artifact n = Generator.randomArtifact();
-
-        if (n != null) {
-            n.cursedKnown = a.cursedKnown;
-            n.cursed = a.cursed;
-            n.levelKnown = a.levelKnown;
-            n.transferUpgrade(a.visiblyUpgraded());
-        }
-
-        return n;
-    }
-
-    private Wand changeWand(Wand w) {
-
-        Wand n;
-        do {
-            n = (Wand) Generator.random(Category.WAND);
-        } while (n.getClass() == w.getClass());
-
-        n.level(0);
-        n.upgrade(w.level());
-
-        n.levelKnown = w.levelKnown;
-        n.cursedKnown = w.cursedKnown;
-        n.cursed = w.cursed;
-
-        return n;
-    }
-
-    private Plant.Seed changeSeed(Plant.Seed s) {
-
-        Plant.Seed n;
-
-        do {
-            n = (Plant.Seed) Generator.random(Category.SEED);
-        } while (n.getClass() == s.getClass());
-
-        return n;
-    }
-
-    private Scroll changeScroll(Scroll s) {
-        if (s instanceof ScrollOfUpgrade) {
-
-            return new ScrollOfMagicalInfusion();
-
-        } else if (s instanceof ScrollOfMagicalInfusion) {
-
-            return new ScrollOfUpgrade();
-
-        } else {
-
-            Scroll n;
-            do {
-                n = (Scroll) Generator.random(Category.SCROLL);
-            } while (n.getClass() == s.getClass());
-            return n;
-        }
-    }
-
-    private Potion changePotion(Potion p) {
-        if (p instanceof PotionOfStrength) {
-
-            return new PotionOfMight();
-
-        } else if (p instanceof PotionOfMight) {
-
-            return new PotionOfStrength();
-
-        } else {
-
-            Potion n;
-            do {
-                n = (Potion) Generator.random(Category.POTION);
-            } while (n.getClass() == p.getClass());
-            return n;
-        }
-    }
-
-    @Override
-    public String tileDesc() {
-        return Messages.get(this, "desc");
-    }
+		return n;
+	}
+	
+	private Wand changeWand( Wand w ) {
+		
+		Wand n;
+		do {
+			n = (Wand)Generator.random( Category.WAND );
+		} while (n.getClass() == w.getClass());
+		
+		n.level( 0 );
+		n.upgrade( w.level() );
+		
+		n.levelKnown = w.levelKnown;
+		n.cursedKnown = w.cursedKnown;
+		n.cursed = w.cursed;
+		
+		return n;
+	}
+	
+	private Plant.Seed changeSeed( Plant.Seed s ) {
+		
+		Plant.Seed n;
+		
+		do {
+			n = (Plant.Seed)Generator.random( Category.SEED );
+		} while (n.getClass() == s.getClass());
+		
+		return n;
+	}
+	
+	private Scroll changeScroll( Scroll s ) {
+		if (s instanceof ScrollOfUpgrade) {
+			
+			return new ScrollOfMagicalInfusion();
+			
+		} else if (s instanceof ScrollOfMagicalInfusion) {
+			
+			return new ScrollOfUpgrade();
+			
+		} else {
+			
+			Scroll n;
+			do {
+				n = (Scroll)Generator.random( Category.SCROLL );
+			} while (n.getClass() == s.getClass());
+			return n;
+		}
+	}
+	
+	private Potion changePotion( Potion p ) {
+		if (p instanceof PotionOfStrength) {
+			
+			return new PotionOfMight();
+			
+		} else if (p instanceof PotionOfMight) {
+			
+			return new PotionOfStrength();
+			
+		} else {
+			
+			Potion n;
+			do {
+				n = (Potion)Generator.random( Category.POTION );
+			} while (n.getClass() == p.getClass());
+			return n;
+		}
+	}
+	
+	@Override
+	public String tileDesc() {
+		return Messages.get(this, "desc");
+	}
 }

@@ -31,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMight;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
-import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements.Resistance;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -40,90 +40,89 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class Frost extends FlavourBuff {
 
-    private static final float DURATION = 5f;
+	private static final float DURATION	= 5f;
 
-    {
-        type = buffType.NEGATIVE;
-    }
+	{
+		type = buffType.NEGATIVE;
+	}
+	
+	@Override
+	public boolean attachTo( Char target ) {
+		if (super.attachTo( target )) {
+			
+			target.paralysed++;
+			Buff.detach( target, Burning.class );
+			Buff.detach( target, Chill.class );
 
-    public static float duration(Char ch) {
-        Resistance r = ch.buff(Resistance.class);
-        return r != null ? r.durationFactor() * DURATION : DURATION;
-    }
+			if (target instanceof Hero) {
 
-    @Override
-    public boolean attachTo(Char target) {
-        if (super.attachTo(target)) {
+				Hero hero = (Hero)target;
+				Item item = hero.belongings.randomUnequipped();
+				if (item instanceof Potion
+						&& !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
 
-            target.paralysed++;
-            Buff.detach(target, Burning.class);
-            Buff.detach(target, Chill.class);
+					item = item.detach( hero.belongings.backpack );
+					GLog.w( Messages.get(this, "freezes", item.toString()) );
+					((Potion) item).shatter(hero.pos);
 
-            if (target instanceof Hero) {
+				} else if (item instanceof MysteryMeat) {
 
-                Hero hero = (Hero) target;
-                Item item = hero.belongings.randomUnequipped();
-                if (item instanceof Potion
-                        && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
+					item = item.detach( hero.belongings.backpack );
+					FrozenCarpaccio carpaccio = new FrozenCarpaccio();
+					if (!carpaccio.collect( hero.belongings.backpack )) {
+						Dungeon.level.drop( carpaccio, target.pos ).sprite.drop();
+					}
+					GLog.w( Messages.get(this, "freezes", item.toString()) );
 
-                    item = item.detach(hero.belongings.backpack);
-                    GLog.w(Messages.get(this, "freezes", item.toString()));
-                    ((Potion) item).shatter(hero.pos);
+				}
+			} else if (target instanceof Thief) {
 
-                } else if (item instanceof MysteryMeat) {
+				Item item = ((Thief) target).item;
 
-                    item = item.detach(hero.belongings.backpack);
-                    FrozenCarpaccio carpaccio = new FrozenCarpaccio();
-                    if (!carpaccio.collect(hero.belongings.backpack)) {
-                        Dungeon.level.drop(carpaccio, target.pos).sprite.drop();
-                    }
-                    GLog.w(Messages.get(this, "freezes", item.toString()));
+				if (item instanceof Potion && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
+					((Potion) ((Thief) target).item).shatter(target.pos);
+					((Thief) target).item = null;
+				}
 
-                }
-            } else if (target instanceof Thief) {
+			}
 
-                Item item = ((Thief) target).item;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	@Override
+	public void detach() {
+		super.detach();
+		if (target.paralysed > 0)
+			target.paralysed--;
+		if (Level.water[target.pos])
+			Buff.prolong(target, Chill.class, 4f);
+	}
+	
+	@Override
+	public int icon() {
+		return BuffIndicator.FROST;
+	}
 
-                if (item instanceof Potion && !(item instanceof PotionOfStrength || item instanceof PotionOfMight)) {
-                    ((Potion) ((Thief) target).item).shatter(target.pos);
-                    ((Thief) target).item = null;
-                }
+	@Override
+	public void fx(boolean on) {
+		if (on) target.sprite.add(CharSprite.State.FROZEN);
+		else target.sprite.remove(CharSprite.State.FROZEN);
+	}
 
-            }
+	@Override
+	public String toString() {
+		return Messages.get(this, "name");
+	}
 
-            return true;
-        } else {
-            return false;
-        }
-    }
+	@Override
+	public String desc() {
+		return Messages.get(this, "desc", dispTurns());
+	}
 
-    @Override
-    public void detach() {
-        super.detach();
-        if (target.paralysed > 0)
-            target.paralysed--;
-        if (Level.water[target.pos])
-            Buff.prolong(target, Chill.class, 4f);
-    }
-
-    @Override
-    public int icon() {
-        return BuffIndicator.FROST;
-    }
-
-    @Override
-    public void fx(boolean on) {
-        if (on) target.sprite.add(CharSprite.State.FROZEN);
-        else target.sprite.remove(CharSprite.State.FROZEN);
-    }
-
-    @Override
-    public String toString() {
-        return Messages.get(this, "name");
-    }
-
-    @Override
-    public String desc() {
-        return Messages.get(this, "desc", dispTurns());
-    }
+	public static float duration( Char ch ) {
+		return DURATION * RingOfElements.durationFactor( ch );
+	}
 }

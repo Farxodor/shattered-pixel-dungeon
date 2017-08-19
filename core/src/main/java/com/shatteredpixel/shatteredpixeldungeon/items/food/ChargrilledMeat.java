@@ -26,20 +26,19 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class ChargrilledMeat extends Food {
 
-    {
-        image = ItemSpriteSheet.STEAK;
-        energy = Hunger.HUNGRY / 2f;
-        hornValue = 1;
-    }
-
-    public static Food cook(MysteryMeat ingredient) {
-        ChargrilledMeat result = new ChargrilledMeat();
-        result.quantity = ingredient.quantity();
-        return result;
-    }
-
-    @Override
-    public int price() {
-        return 8 * quantity;
-    }
+	{
+		image = ItemSpriteSheet.STEAK;
+		energy = Hunger.HUNGRY/2f;
+	}
+	
+	@Override
+	public int price() {
+		return 8 * quantity;
+	}
+	
+	public static Food cook( MysteryMeat ingredient ) {
+		ChargrilledMeat result = new ChargrilledMeat();
+		result.quantity = ingredient.quantity();
+		return result;
+	}
 }

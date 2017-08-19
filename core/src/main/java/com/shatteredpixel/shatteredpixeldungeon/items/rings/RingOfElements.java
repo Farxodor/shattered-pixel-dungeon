@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
@@ -34,39 +35,43 @@ import com.watabou.utils.Random;
 import java.util.HashSet;
 
 public class RingOfElements extends Ring {
+	
+	@Override
+	protected RingBuff buff( ) {
+		return new Resistance();
+	}
 
-    public static final HashSet<Class<?>> FULL;
-    private static final HashSet<Class<?>> EMPTY = new HashSet<Class<?>>();
-
-    static {
-        FULL = new HashSet<Class<?>>();
-        FULL.add(Burning.class);
-        FULL.add(ToxicGas.class);
-        FULL.add(Poison.class);
-        FULL.add(Venom.class);
-        FULL.add(LightningTrap.Electricity.class);
-        FULL.add(Warlock.class);
-        FULL.add(Eye.class);
-        FULL.add(Yog.BurningFist.class);
-    }
-
-    @Override
-    protected RingBuff buff() {
-        return new Resistance();
-    }
-
-    public class Resistance extends RingBuff {
-
-        public HashSet<Class<?>> resistances() {
-            if (Random.Int(level() + 2) >= 2) {
-                return FULL;
-            } else {
-                return EMPTY;
-            }
-        }
-
-        public float durationFactor() {
-            return level() < 0 ? 1 : (1 + 0.5f * level()) / (1 + level());
-        }
-    }
+	private static final HashSet<Class<?>> EMPTY = new HashSet<Class<?>>();
+	public static final HashSet<Class<?>> FULL;
+	static {
+		FULL = new HashSet<Class<?>>();
+		FULL.add( Burning.class );
+		FULL.add( ToxicGas.class );
+		FULL.add( Poison.class );
+		FULL.add( Venom.class );
+		FULL.add( LightningTrap.Electricity.class );
+		FULL.add( Warlock.class );
+		FULL.add( Eye.class );
+		FULL.add( Yog.BurningFist.class );
+	}
+	
+	public static HashSet<Class<?>> resistances( Char target ){
+		if (Random.Int( getBonus(target, Resistance.class) + 2 ) >= 2) {
+			return FULL;
+		} else {
+			return EMPTY;
+		}
+	}
+	
+	public static float durationFactor( Char target ){
+		int level = getBonus( target, Resistance.class);
+		return level <= 0 ? 1 : (1 + 0.5f * level) / (1 + level);
+	}
+	
+	public class Resistance extends RingBuff {
+		
+		public float durationFactor() {
+			return level() < 0 ? 1 : (1 + 0.5f * level()) / (1 + level());
+		}
+	}
 }

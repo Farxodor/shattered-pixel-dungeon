@@ -34,101 +34,99 @@ import java.util.Calendar;
 
 public class Pasty extends Food {
 
-    private static Holiday holiday;
+	//TODO: implement fun stuff for other holidays
+	//TODO: probably should externalize this if I want to add any more festive stuff.
+	private enum Holiday{
+		NONE,
+		EASTER, //TBD
+		HWEEN,//2nd week of october though first day of november
+		XMAS //3rd week of december through first week of january
+	}
 
-    static {
+	private static Holiday holiday;
 
-        holiday = Holiday.NONE;
+	static{
 
-        final Calendar calendar = Calendar.getInstance();
-        switch (calendar.get(Calendar.MONTH)) {
-            case Calendar.JANUARY:
-                if (calendar.get(Calendar.WEEK_OF_MONTH) == 1)
-                    holiday = Holiday.XMAS;
-                break;
-            case Calendar.OCTOBER:
-                if (calendar.get(Calendar.WEEK_OF_MONTH) >= 2)
-                    holiday = Holiday.HWEEN;
-                break;
-            case Calendar.NOVEMBER:
-                if (calendar.get(Calendar.DAY_OF_MONTH) == 1)
-                    holiday = Holiday.HWEEN;
-                break;
-            case Calendar.DECEMBER:
-                if (calendar.get(Calendar.WEEK_OF_MONTH) >= 3)
-                    holiday = Holiday.XMAS;
-                break;
-        }
-    }
+		holiday = Holiday.NONE;
 
-    {
+		final Calendar calendar = Calendar.getInstance();
+		switch(calendar.get(Calendar.MONTH)){
+			case Calendar.JANUARY:
+				if (calendar.get(Calendar.WEEK_OF_MONTH) == 1)
+					holiday = Holiday.XMAS;
+				break;
+			case Calendar.OCTOBER:
+				if (calendar.get(Calendar.WEEK_OF_MONTH) >= 2)
+					holiday = Holiday.HWEEN;
+				break;
+			case Calendar.NOVEMBER:
+				if (calendar.get(Calendar.DAY_OF_MONTH) == 1)
+					holiday = Holiday.HWEEN;
+				break;
+			case Calendar.DECEMBER:
+				if (calendar.get(Calendar.WEEK_OF_MONTH) >= 3)
+					holiday = Holiday.XMAS;
+				break;
+		}
+	}
 
-        switch (holiday) {
-            case NONE:
-                name = Messages.get(this, "pasty");
-                image = ItemSpriteSheet.PASTY;
-                break;
-            case HWEEN:
-                name = Messages.get(this, "pie");
-                image = ItemSpriteSheet.PUMPKIN_PIE;
-                break;
-            case XMAS:
-                name = Messages.get(this, "cane");
-                image = ItemSpriteSheet.CANDY_CANE;
-                break;
-        }
+	{
 
-        energy = Hunger.STARVING;
-        hornValue = 5;
+		switch(holiday){
+			case NONE:
+				name = Messages.get(this, "pasty");
+				image = ItemSpriteSheet.PASTY;
+				break;
+			case HWEEN:
+				name = Messages.get(this, "pie");
+				image = ItemSpriteSheet.PUMPKIN_PIE;
+				break;
+			case XMAS:
+				name = Messages.get(this, "cane");
+				image = ItemSpriteSheet.CANDY_CANE;
+				break;
+		}
 
-        bones = true;
-    }
+		energy = Hunger.STARVING;
 
-    @Override
-    public void execute(Hero hero, String action) {
-        super.execute(hero, action);
+		bones = true;
+	}
 
-        if (action.equals(AC_EAT)) {
-            switch (holiday) {
-                case NONE:
-                    break; //do nothing extra
-                case HWEEN:
-                    //heals for 10% max hp
-                    hero.HP = Math.min(hero.HP + hero.HT / 10, hero.HT);
-                    hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
-                    break;
-                case XMAS:
-                    Buff.affect(hero, Recharging.class, 2f); //half of a charge
-                    ScrollOfRecharging.charge(hero);
-                    break;
-            }
-        }
-    }
+	@Override
+	public void execute(Hero hero, String action) {
+		super.execute(hero, action);
 
-    @Override
-    public String info() {
-        switch (holiday) {
-            case NONE:
-            default:
-                return Messages.get(this, "pasty_desc");
-            case HWEEN:
-                return Messages.get(this, "pie_desc");
-            case XMAS:
-                return Messages.get(this, "cane_desc");
-        }
-    }
+		if (action.equals(AC_EAT)){
+			switch(holiday){
+				case NONE:
+					break; //do nothing extra
+				case HWEEN:
+					//heals for 10% max hp
+					hero.HP = Math.min(hero.HP + hero.HT/10, hero.HT);
+					hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+					break;
+				case XMAS:
+					Buff.affect( hero, Recharging.class, 2f ); //half of a charge
+					ScrollOfRecharging.charge( hero );
+					break;
+			}
+		}
+	}
 
-    @Override
-    public int price() {
-        return 20 * quantity;
-    }
-
-    //TODO: implement fun stuff for other holidays
-    //TODO: probably should externalize this if I want to add any more festive stuff.
-    private enum Holiday {
-        NONE,
-        EASTER, //TBD
-        HWEEN,//2nd week of october though first day of november
-        XMAS //3rd week of december through first week of january
-    }
+	@Override
+	public String info() {
+		switch(holiday){
+			case NONE: default:
+				return Messages.get(this, "pasty_desc");
+			case HWEEN:
+				return Messages.get(this, "pie_desc");
+			case XMAS:
+				return Messages.get(this, "cane_desc");
+		}
+	}
+	
+	@Override
+	public int price() {
+		return 20 * quantity;
+	}
 }

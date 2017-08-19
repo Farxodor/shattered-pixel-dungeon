@@ -24,56 +24,62 @@ package com.shatteredpixel.shatteredpixeldungeon.items.keys;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StatusPane;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndJournal;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
 public abstract class Key extends Item {
 
-    public static final float TIME_TO_UNLOCK = 1f;
-    private static final String DEPTH = "depth";
-    public int depth;
+	public static final float TIME_TO_UNLOCK = 1f;
+	
+	{
+		stackable = true;
+		unique = true;
+	}
+	
+	public int depth;
+	
+	@Override
+	public boolean isSimilar( Item item ) {
+		return item.getClass() == getClass() && ((Key)item).depth == depth;
+	}
 
-    {
-        stackable = true;
-        unique = true;
-    }
+	@Override
+	public boolean doPickUp(Hero hero) {
+		GameScene.pickUpJournal(this);
+		WndJournal.last_index = 1;
+		Notes.add(this);
+		Sample.INSTANCE.play( Assets.SND_ITEM );
+		hero.spendAndNext( TIME_TO_PICK_UP );
+		StatusPane.needsKeyUpdate = true;
+		return true;
+	}
 
-    @Override
-    public boolean isSimilar(Item item) {
-        return item.getClass() == getClass() && ((Key) item).depth == depth;
-    }
-
-    @Override
-    public boolean doPickUp(Hero hero) {
-        GameScene.pickUpJournal(this);
-        Sample.INSTANCE.play(Assets.SND_ITEM);
-        hero.spendAndNext(TIME_TO_PICK_UP);
-        StatusPane.needsKeyUpdate = true;
-        return true;
-    }
-
-    @Override
-    public void storeInBundle(Bundle bundle) {
-        super.storeInBundle(bundle);
-        bundle.put(DEPTH, depth);
-    }
-
-    @Override
-    public void restoreFromBundle(Bundle bundle) {
-        super.restoreFromBundle(bundle);
-        depth = bundle.getInt(DEPTH);
-    }
-
-    @Override
-    public boolean isUpgradable() {
-        return false;
-    }
-
-    @Override
-    public boolean isIdentified() {
-        return true;
-    }
+	private static final String DEPTH = "depth";
+	
+	@Override
+	public void storeInBundle( Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( DEPTH, depth );
+	}
+	
+	@Override
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle( bundle );
+		depth = bundle.getInt( DEPTH );
+	}
+	
+	@Override
+	public boolean isUpgradable() {
+		return false;
+	}
+	
+	@Override
+	public boolean isIdentified() {
+		return true;
+	}
 
 }

@@ -77,263 +77,259 @@ import java.util.ArrayList;
 
 public class ShopRoom extends SpecialRoom {
 
-    private ArrayList<Item> itemsToSpawn;
+	private ArrayList<Item> itemsToSpawn;
+	
+	@Override
+	public int minWidth() {
+		if (itemsToSpawn == null) itemsToSpawn = generateItems();
+		return Math.max(7, (int)(Math.sqrt(itemsToSpawn.size())+3));
+	}
+	
+	@Override
+	public int minHeight() {
+		if (itemsToSpawn == null) itemsToSpawn = generateItems();
+		return Math.max(7, (int)(Math.sqrt(itemsToSpawn.size())+3));
+	}
+	
+	public void paint( Level level ) {
+		
+		Painter.fill( level, this, Terrain.WALL );
+		Painter.fill( level, this, 1, Terrain.EMPTY_SP );
 
-    protected static ArrayList<Item> generateItems() {
+		placeShopkeeper( level );
 
-        ArrayList<Item> itemsToSpawn = new ArrayList<>();
+		placeItems( level );
+		
+		for (Door door : connected.values()) {
+			door.set( Door.Type.REGULAR );
+		}
 
-        switch (Dungeon.depth) {
-            case 6:
-                itemsToSpawn.add((Random.Int(2) == 0 ? new Shortsword().identify() : new HandAxe()).identify());
-                itemsToSpawn.add(Random.Int(2) == 0 ?
-                        new IncendiaryDart().quantity(Random.NormalIntRange(2, 4)) :
-                        new CurareDart().quantity(Random.NormalIntRange(1, 3)));
-                itemsToSpawn.add(new LeatherArmor().identify());
-                break;
+	}
 
-            case 11:
-                itemsToSpawn.add((Random.Int(2) == 0 ? new Sword().identify() : new Mace()).identify());
-                itemsToSpawn.add(Random.Int(2) == 0 ?
-                        new CurareDart().quantity(Random.NormalIntRange(2, 5)) :
-                        new Shuriken().quantity(Random.NormalIntRange(3, 6)));
-                itemsToSpawn.add(new MailArmor().identify());
-                break;
+	protected void placeShopkeeper( Level level ) {
 
-            case 16:
-                itemsToSpawn.add((Random.Int(2) == 0 ? new Longsword().identify() : new BattleAxe()).identify());
-                itemsToSpawn.add(Random.Int(2) == 0 ?
-                        new Shuriken().quantity(Random.NormalIntRange(4, 7)) :
-                        new Javelin().quantity(Random.NormalIntRange(3, 6)));
-                itemsToSpawn.add(new ScaleArmor().identify());
-                break;
+		int pos = level.pointToCell(center());
 
-            case 21:
-                itemsToSpawn.add(Random.Int(2) == 0 ? new Greatsword().identify() : new WarHammer().identify());
-                itemsToSpawn.add(Random.Int(2) == 0 ?
-                        new Javelin().quantity(Random.NormalIntRange(4, 7)) :
-                        new Tamahawk().quantity(Random.NormalIntRange(4, 7)));
-                itemsToSpawn.add(new PlateArmor().identify());
-                itemsToSpawn.add(new Torch());
-                itemsToSpawn.add(new Torch());
-                itemsToSpawn.add(new Torch());
-                break;
-        }
+		Mob shopkeeper = new Shopkeeper();
+		shopkeeper.pos = pos;
+		level.mobs.add( shopkeeper );
 
-        itemsToSpawn.add(new MerchantsBeacon());
+	}
+
+	protected void placeItems( Level level ){
+
+		if (itemsToSpawn == null)
+			itemsToSpawn = generateItems();
+
+		Point itemPlacement = new Point(entrance());
+		if (itemPlacement.y == top){
+			itemPlacement.y++;
+		} else if (itemPlacement.y == bottom) {
+			itemPlacement.y--;
+		} else if (itemPlacement.x == left){
+			itemPlacement.x++;
+		} else {
+			itemPlacement.x--;
+		}
+
+		for (Item item : itemsToSpawn) {
+
+			if (itemPlacement.x == left+1 && itemPlacement.y != top+1){
+				itemPlacement.y--;
+			} else if (itemPlacement.y == top+1 && itemPlacement.x != right-1){
+				itemPlacement.x++;
+			} else if (itemPlacement.x == right-1 && itemPlacement.y != bottom-1){
+				itemPlacement.y++;
+			} else {
+				itemPlacement.x--;
+			}
+
+			int cell = level.pointToCell(itemPlacement);
+
+			if (level.heaps.get( cell ) != null) {
+				do {
+					cell = level.pointToCell(random());
+				} while (level.heaps.get( cell ) != null || level.findMob( cell ) != null);
+			}
+
+			level.drop( item, cell ).type = Heap.Type.FOR_SALE;
+		}
+
+	}
+	
+	protected static ArrayList<Item> generateItems() {
+
+		ArrayList<Item> itemsToSpawn = new ArrayList<>();
+		
+		switch (Dungeon.depth) {
+		case 6:
+			itemsToSpawn.add( (Random.Int( 2 ) == 0 ? new Shortsword().identify() : new HandAxe()).identify() );
+			itemsToSpawn.add( Random.Int( 2 ) == 0 ?
+					new IncendiaryDart().quantity(Random.NormalIntRange(2, 4)) :
+					new CurareDart().quantity(Random.NormalIntRange(1, 3)));
+			itemsToSpawn.add( new LeatherArmor().identify() );
+			break;
+			
+		case 11:
+			itemsToSpawn.add( (Random.Int( 2 ) == 0 ? new Sword().identify() : new Mace()).identify() );
+			itemsToSpawn.add( Random.Int( 2 ) == 0 ?
+					new CurareDart().quantity(Random.NormalIntRange(2, 5)) :
+					new Shuriken().quantity(Random.NormalIntRange(3, 6)));
+			itemsToSpawn.add( new MailArmor().identify() );
+			break;
+			
+		case 16:
+			itemsToSpawn.add( (Random.Int( 2 ) == 0 ? new Longsword().identify() : new BattleAxe()).identify() );
+			itemsToSpawn.add( Random.Int( 2 ) == 0 ?
+					new Shuriken().quantity(Random.NormalIntRange(4, 7)) :
+					new Javelin().quantity(Random.NormalIntRange(3, 6)));
+			itemsToSpawn.add( new ScaleArmor().identify() );
+			break;
+			
+		case 21:
+			itemsToSpawn.add( Random.Int( 2 ) == 0 ? new Greatsword().identify() : new WarHammer().identify() );
+			itemsToSpawn.add( Random.Int(2) == 0 ?
+					new Javelin().quantity(Random.NormalIntRange(4, 7)) :
+					new Tamahawk().quantity(Random.NormalIntRange(4, 7)));
+			itemsToSpawn.add( new PlateArmor().identify() );
+			itemsToSpawn.add( new Torch() );
+			itemsToSpawn.add( new Torch() );
+			itemsToSpawn.add( new Torch() );
+			break;
+		}
+
+		itemsToSpawn.add( new MerchantsBeacon() );
 
 
-        itemsToSpawn.add(ChooseBag(Dungeon.hero.belongings));
+		itemsToSpawn.add(ChooseBag(Dungeon.hero.belongings));
 
 
-        itemsToSpawn.add(new PotionOfHealing());
-        for (int i = 0; i < 3; i++)
-            itemsToSpawn.add(Generator.random(Generator.Category.POTION));
+		itemsToSpawn.add( new PotionOfHealing() );
+		for (int i=0; i < 3; i++)
+			itemsToSpawn.add( Generator.random( Generator.Category.POTION ) );
 
-        itemsToSpawn.add(new ScrollOfIdentify());
-        itemsToSpawn.add(new ScrollOfRemoveCurse());
-        itemsToSpawn.add(new ScrollOfMagicMapping());
-        itemsToSpawn.add(Generator.random(Generator.Category.SCROLL));
+		itemsToSpawn.add( new ScrollOfIdentify() );
+		itemsToSpawn.add( new ScrollOfRemoveCurse() );
+		itemsToSpawn.add( new ScrollOfMagicMapping() );
+		itemsToSpawn.add( Generator.random( Generator.Category.SCROLL ) );
 
-        for (int i = 0; i < 2; i++)
-            itemsToSpawn.add(Random.Int(2) == 0 ?
-                    Generator.random(Generator.Category.POTION) :
-                    Generator.random(Generator.Category.SCROLL));
-
-
-        itemsToSpawn.add(new SmallRation());
-        itemsToSpawn.add(new SmallRation());
-
-        itemsToSpawn.add(new Bomb().random());
-        switch (Random.Int(5)) {
-            case 1:
-                itemsToSpawn.add(new Bomb());
-                break;
-            case 2:
-                itemsToSpawn.add(new Bomb().random());
-                break;
-            case 3:
-            case 4:
-                itemsToSpawn.add(new Honeypot());
-                break;
-        }
+		for (int i=0; i < 2; i++)
+			itemsToSpawn.add( Random.Int(2) == 0 ?
+					Generator.random( Generator.Category.POTION ) :
+					Generator.random( Generator.Category.SCROLL ) );
 
 
-        if (Dungeon.depth == 6) {
-            itemsToSpawn.add(new Ankh());
-            itemsToSpawn.add(new Weightstone());
-        } else {
-            itemsToSpawn.add(Random.Int(2) == 0 ? new Ankh() : new Weightstone());
-        }
+		itemsToSpawn.add( new SmallRation() );
+		itemsToSpawn.add( new SmallRation() );
+
+		itemsToSpawn.add( new Bomb().random() );
+		switch (Random.Int(5)){
+			case 1:
+				itemsToSpawn.add( new Bomb() );
+				break;
+			case 2:
+				itemsToSpawn.add( new Bomb().random() );
+				break;
+			case 3:
+			case 4:
+				itemsToSpawn.add( new Honeypot() );
+				break;
+		}
 
 
-        TimekeepersHourglass hourglass = Dungeon.hero.belongings.getItem(TimekeepersHourglass.class);
-        if (hourglass != null) {
-            int bags = 0;
-            //creates the given float percent of the remaining bags to be dropped.
-            //this way players who get the hourglass late can still max it, usually.
-            switch (Dungeon.depth) {
-                case 6:
-                    bags = (int) Math.ceil((5 - hourglass.sandBags) * 0.20f);
-                    break;
-                case 11:
-                    bags = (int) Math.ceil((5 - hourglass.sandBags) * 0.25f);
-                    break;
-                case 16:
-                    bags = (int) Math.ceil((5 - hourglass.sandBags) * 0.50f);
-                    break;
-                case 21:
-                    bags = (int) Math.ceil((5 - hourglass.sandBags) * 0.80f);
-                    break;
-            }
+		if (Dungeon.depth == 6) {
+			itemsToSpawn.add( new Ankh() );
+			itemsToSpawn.add( new Weightstone() );
+		} else {
+			itemsToSpawn.add(Random.Int(2) == 0 ? new Ankh() : new Weightstone());
+		}
 
-            for (int i = 1; i <= bags; i++) {
-                itemsToSpawn.add(new TimekeepersHourglass.sandBag());
-                hourglass.sandBags++;
-            }
-        }
 
-        Item rare;
-        switch (Random.Int(10)) {
-            case 0:
-                rare = Generator.random(Generator.Category.WAND);
-                rare.level(0);
-                break;
-            case 1:
-                rare = Generator.random(Generator.Category.RING);
-                rare.level(1);
-                break;
-            case 2:
-                rare = Generator.random(Generator.Category.ARTIFACT).identify();
-                break;
-            default:
-                rare = new Stylus();
-        }
-        rare.cursed = rare.cursedKnown = false;
-        itemsToSpawn.add(rare);
+		TimekeepersHourglass hourglass = Dungeon.hero.belongings.getItem(TimekeepersHourglass.class);
+		if (hourglass != null){
+			int bags = 0;
+			//creates the given float percent of the remaining bags to be dropped.
+			//this way players who get the hourglass late can still max it, usually.
+			switch (Dungeon.depth) {
+				case 6:
+					bags = (int)Math.ceil(( 5-hourglass.sandBags) * 0.20f ); break;
+				case 11:
+					bags = (int)Math.ceil(( 5-hourglass.sandBags) * 0.25f ); break;
+				case 16:
+					bags = (int)Math.ceil(( 5-hourglass.sandBags) * 0.50f ); break;
+				case 21:
+					bags = (int)Math.ceil(( 5-hourglass.sandBags) * 0.80f ); break;
+			}
 
-        //hard limit is 63 items + 1 shopkeeper, as shops can't be bigger than 8x8=64 internally
-        if (itemsToSpawn.size() > 63)
-            throw new RuntimeException("Shop attempted to carry more than 63 items!");
+			for(int i = 1; i <= bags; i++){
+				itemsToSpawn.add( new TimekeepersHourglass.sandBag());
+				hourglass.sandBags ++;
+			}
+		}
 
-        Random.shuffle(itemsToSpawn);
-        return itemsToSpawn;
-    }
+		Item rare;
+		switch (Random.Int(10)){
+			case 0:
+				rare = Generator.random( Generator.Category.WAND );
+				rare.level( 0 );
+				break;
+			case 1:
+				rare = Generator.random(Generator.Category.RING);
+				rare.level( 0 );
+				break;
+			case 2:
+				rare = Generator.random( Generator.Category.ARTIFACT );
+				break;
+			default:
+				rare = new Stylus();
+		}
+		rare.cursed = rare.cursedKnown = false;
+		itemsToSpawn.add( rare );
 
-    protected static Bag ChooseBag(Belongings pack) {
+		//hard limit is 63 items + 1 shopkeeper, as shops can't be bigger than 8x8=64 internally
+		if (itemsToSpawn.size() > 63)
+			throw new RuntimeException("Shop attempted to carry more than 63 items!");
 
-        int seeds = 0, scrolls = 0, potions = 0, wands = 0;
+		Random.shuffle(itemsToSpawn);
+		return itemsToSpawn;
+	}
 
-        //count up items in the main bag, for bags which haven't yet been dropped.
-        for (Item item : pack.backpack.items) {
-            if (!Dungeon.limitedDrops.seedBag.dropped() && item instanceof Plant.Seed)
-                seeds++;
-            else if (!Dungeon.limitedDrops.scrollBag.dropped() && item instanceof Scroll)
-                scrolls++;
-            else if (!Dungeon.limitedDrops.potionBag.dropped() && item instanceof Potion)
-                potions++;
-            else if (!Dungeon.limitedDrops.wandBag.dropped() && item instanceof Wand)
-                wands++;
-        }
+	protected static Bag ChooseBag(Belongings pack){
 
-        //then pick whichever valid bag has the most items available to put into it.
-        //note that the order here gives a perference if counts are otherwise equal
-        if (seeds >= scrolls && seeds >= potions && seeds >= wands && !Dungeon.limitedDrops.seedBag.dropped()) {
-            Dungeon.limitedDrops.seedBag.drop();
-            return new SeedPouch();
+		int seeds = 0, scrolls = 0, potions = 0, wands = 0;
 
-        } else if (scrolls >= potions && scrolls >= wands && !Dungeon.limitedDrops.scrollBag.dropped()) {
-            Dungeon.limitedDrops.scrollBag.drop();
-            return new ScrollHolder();
+		//count up items in the main bag, for bags which haven't yet been dropped.
+		for (Item item : pack.backpack.items) {
+			if (!Dungeon.LimitedDrops.SEED_POUCH.dropped() && item instanceof Plant.Seed)
+				seeds++;
+			else if (!Dungeon.LimitedDrops.SCROLL_HOLDER.dropped() && item instanceof Scroll)
+				scrolls++;
+			else if (!Dungeon.LimitedDrops.POTION_BANDOLIER.dropped() && item instanceof Potion)
+				potions++;
+			else if (!Dungeon.LimitedDrops.WAND_HOLSTER.dropped() && item instanceof Wand)
+				wands++;
+		}
 
-        } else if (potions >= wands && !Dungeon.limitedDrops.potionBag.dropped()) {
-            Dungeon.limitedDrops.potionBag.drop();
-            return new PotionBandolier();
+		//then pick whichever valid bag has the most items available to put into it.
+		//note that the order here gives a perference if counts are otherwise equal
+		if (seeds >= scrolls && seeds >= potions && seeds >= wands && !Dungeon.LimitedDrops.SEED_POUCH.dropped()) {
+			Dungeon.LimitedDrops.SEED_POUCH.drop();
+			return new SeedPouch();
 
-        } else if (!Dungeon.limitedDrops.wandBag.dropped()) {
-            Dungeon.limitedDrops.wandBag.drop();
-            return new WandHolster();
-        }
+		} else if (scrolls >= potions && scrolls >= wands && !Dungeon.LimitedDrops.SCROLL_HOLDER.dropped()) {
+			Dungeon.LimitedDrops.SCROLL_HOLDER.drop();
+			return new ScrollHolder();
 
-        return null;
-    }
+		} else if (potions >= wands && !Dungeon.LimitedDrops.POTION_BANDOLIER.dropped()) {
+			Dungeon.LimitedDrops.POTION_BANDOLIER.drop();
+			return new PotionBandolier();
 
-    @Override
-    public int minWidth() {
-        if (itemsToSpawn == null) itemsToSpawn = generateItems();
-        return Math.max(7, (int) (Math.sqrt(itemsToSpawn.size()) + 3));
-    }
+		} else if (!Dungeon.LimitedDrops.WAND_HOLSTER.dropped()) {
+			Dungeon.LimitedDrops.WAND_HOLSTER.drop();
+			return new WandHolster();
+		}
 
-    @Override
-    public int minHeight() {
-        if (itemsToSpawn == null) itemsToSpawn = generateItems();
-        return Math.max(7, (int) (Math.sqrt(itemsToSpawn.size()) + 3));
-    }
-
-    public void paint(Level level) {
-
-        Painter.fill(level, this, Terrain.WALL);
-        Painter.fill(level, this, 1, Terrain.EMPTY_SP);
-
-        placeShopkeeper(level);
-
-        placeItems(level);
-
-        for (Door door : connected.values()) {
-            door.set(Door.Type.REGULAR);
-        }
-
-    }
-
-    protected void placeShopkeeper(Level level) {
-
-        int pos = level.pointToCell(center());
-
-        Mob shopkeeper = new Shopkeeper();
-        shopkeeper.pos = pos;
-        level.mobs.add(shopkeeper);
-
-    }
-
-    protected void placeItems(Level level) {
-
-        if (itemsToSpawn == null)
-            itemsToSpawn = generateItems();
-
-        Point itemPlacement = new Point(entrance());
-        if (itemPlacement.y == top) {
-            itemPlacement.y++;
-        } else if (itemPlacement.y == bottom) {
-            itemPlacement.y--;
-        } else if (itemPlacement.x == left) {
-            itemPlacement.x++;
-        } else {
-            itemPlacement.x--;
-        }
-
-        for (Item item : itemsToSpawn) {
-
-            if (itemPlacement.x == left + 1 && itemPlacement.y != top + 1) {
-                itemPlacement.y--;
-            } else if (itemPlacement.y == top + 1 && itemPlacement.x != right - 1) {
-                itemPlacement.x++;
-            } else if (itemPlacement.x == right - 1 && itemPlacement.y != bottom - 1) {
-                itemPlacement.y++;
-            } else {
-                itemPlacement.x--;
-            }
-
-            int cell = level.pointToCell(itemPlacement);
-
-            if (level.heaps.get(cell) != null) {
-                do {
-                    cell = level.pointToCell(random());
-                } while (level.heaps.get(cell) != null || level.findMob(cell) != null);
-            }
-
-            level.drop(item, cell).type = Heap.Type.FOR_SALE;
-        }
-
-    }
+		return null;
+	}
 
 }

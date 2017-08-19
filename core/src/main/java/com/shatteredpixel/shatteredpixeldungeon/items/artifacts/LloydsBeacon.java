@@ -52,255 +52,257 @@ import java.util.ArrayList;
 
 public class LloydsBeacon extends Artifact {
 
-    public static final float TIME_TO_USE = 1;
+	public static final float TIME_TO_USE = 1;
 
-    public static final String AC_ZAP = "ZAP";
-    public static final String AC_SET = "SET";
-    public static final String AC_RETURN = "RETURN";
-    private static final String DEPTH = "depth";
-    private static final String POS = "pos";
-    private static final Glowing WHITE = new Glowing(0xFFFFFF);
-    public int returnDepth = -1;
-    public int returnPos;
-    protected CellSelector.Listener zapper = new CellSelector.Listener() {
+	public static final String AC_ZAP       = "ZAP";
+	public static final String AC_SET		= "SET";
+	public static final String AC_RETURN	= "RETURN";
+	
+	public int returnDepth	= -1;
+	public int returnPos;
+	
+	{
+		image = ItemSpriteSheet.ARTIFACT_BEACON;
 
-        @Override
-        public void onSelect(Integer target) {
+		levelCap = 3;
 
-            if (target == null) return;
+		charge = 0;
+		chargeCap = 3+level();
 
-            Invisibility.dispel();
-            charge -= Dungeon.depth > 20 ? 2 : 1;
-            updateQuickslot();
+		defaultAction = AC_ZAP;
+		usesTargeting = true;
+	}
+	
+	private static final String DEPTH	= "depth";
+	private static final String POS		= "pos";
+	
+	@Override
+	public void storeInBundle( Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( DEPTH, returnDepth );
+		if (returnDepth != -1) {
+			bundle.put( POS, returnPos );
+		}
+	}
+	
+	@Override
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle(bundle);
+		returnDepth	= bundle.getInt( DEPTH );
+		returnPos	= bundle.getInt( POS );
+	}
+	
+	@Override
+	public ArrayList<String> actions( Hero hero ) {
+		ArrayList<String> actions = super.actions( hero );
+		actions.add( AC_ZAP );
+		actions.add( AC_SET );
+		if (returnDepth != -1) {
+			actions.add( AC_RETURN );
+		}
+		return actions;
+	}
+	
+	@Override
+	public void execute( Hero hero, String action ) {
 
-            if (Actor.findChar(target) == curUser) {
-                ScrollOfTeleportation.teleportHero(curUser);
-                curUser.spendAndNext(1f);
-            } else {
-                final Ballistica bolt = new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT);
-                final Char ch = Actor.findChar(bolt.collisionPos);
+		super.execute( hero, action );
 
-                if (ch == curUser) {
-                    ScrollOfTeleportation.teleportHero(curUser);
-                    curUser.spendAndNext(1f);
-                } else {
-                    Sample.INSTANCE.play(Assets.SND_ZAP);
-                    curUser.sprite.zap(bolt.collisionPos);
-                    curUser.busy();
+		if (action == AC_SET || action == AC_RETURN) {
+			
+			if (Dungeon.bossLevel()) {
+				hero.spend( LloydsBeacon.TIME_TO_USE );
+				GLog.w( Messages.get(this, "preventing") );
+				return;
+			}
+			
+			for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+				Char ch = Actor.findChar(hero.pos + PathFinder.NEIGHBOURS8[i]);
+				if (ch != null && !(ch instanceof Mob && !((Mob) ch).hostile)) {
+					GLog.w( Messages.get(this, "creatures") );
+					return;
+				}
+			}
+		}
 
-                    MagicMissile.boltFromChar(curUser.sprite.parent,
-                            MagicMissile.BEACON,
-                            curUser.sprite,
-                            bolt.collisionPos,
-                            new Callback() {
-                                @Override
-                                public void call() {
-                                    if (ch != null) {
+		if (action == AC_ZAP ){
 
-                                        int count = 10;
-                                        int pos;
-                                        do {
-                                            pos = Dungeon.level.randomRespawnCell();
-                                            if (count-- <= 0) {
-                                                break;
-                                            }
-                                        } while (pos == -1);
+			curUser = hero;
+			int chargesToUse = Dungeon.depth > 20 ? 2 : 1;
 
-                                        if (pos == -1 || Dungeon.bossLevel()) {
+			if (!isEquipped( hero )) {
+				GLog.i( Messages.get(Artifact.class, "need_to_equip") );
+				QuickSlotButton.cancel();
 
-                                            GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
+			} else if (charge < chargesToUse) {
+				GLog.i( Messages.get(this, "no_charge") );
+				QuickSlotButton.cancel();
 
-                                        } else if (ch.properties().contains(Char.Property.IMMOVABLE)) {
+			} else {
+				GameScene.selectCell(zapper);
+			}
 
-                                            GLog.w(Messages.get(LloydsBeacon.class, "tele_fail"));
+		} else if (action == AC_SET) {
+			
+			returnDepth = Dungeon.depth;
+			returnPos = hero.pos;
+			
+			hero.spend( LloydsBeacon.TIME_TO_USE );
+			hero.busy();
+			
+			hero.sprite.operate( hero.pos );
+			Sample.INSTANCE.play( Assets.SND_BEACON );
+			
+			GLog.i( Messages.get(this, "return") );
+			
+		} else if (action == AC_RETURN) {
+			
+			if (returnDepth == Dungeon.depth) {
+				ScrollOfTeleportation.appear( hero, returnPos );
+				Dungeon.level.press( returnPos, hero );
+				Dungeon.observe();
+				GameScene.updateFog();
+			} else {
 
-                                        } else {
+				Buff buff = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
+				if (buff != null) buff.detach();
 
-                                            ch.pos = pos;
-                                            ch.sprite.place(ch.pos);
-                                            ch.sprite.visible = Dungeon.visible[pos];
+				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
+				InterlevelScene.returnDepth = returnDepth;
+				InterlevelScene.returnPos = returnPos;
+				Game.switchScene( InterlevelScene.class );
+			}
+			
+			
+		}
+	}
 
-                                        }
-                                    }
-                                    curUser.spendAndNext(1f);
-                                }
-                            });
+	protected CellSelector.Listener zapper = new  CellSelector.Listener() {
 
-                }
+		@Override
+		public void onSelect(Integer target) {
 
+			if (target == null) return;
 
-            }
+			Invisibility.dispel();
+			charge -= Dungeon.depth > 20 ? 2 : 1;
+			updateQuickslot();
 
-        }
+			if (Actor.findChar(target) == curUser){
+				ScrollOfTeleportation.teleportHero(curUser);
+				curUser.spendAndNext(1f);
+			} else {
+				final Ballistica bolt = new Ballistica( curUser.pos, target, Ballistica.MAGIC_BOLT );
+				final Char ch = Actor.findChar(bolt.collisionPos);
 
-        @Override
-        public String prompt() {
-            return Messages.get(LloydsBeacon.class, "prompt");
-        }
-    };
+				if (ch == curUser){
+					ScrollOfTeleportation.teleportHero(curUser);
+					curUser.spendAndNext( 1f );
+				} else {
+					Sample.INSTANCE.play( Assets.SND_ZAP );
+					curUser.sprite.zap(bolt.collisionPos);
+					curUser.busy();
 
-    {
-        image = ItemSpriteSheet.ARTIFACT_BEACON;
+					MagicMissile.boltFromChar(curUser.sprite.parent,
+							MagicMissile.BEACON,
+							curUser.sprite,
+							bolt.collisionPos,
+							new Callback() {
+								@Override
+								public void call() {
+									if (ch != null) {
 
-        levelCap = 3;
+										int count = 10;
+										int pos;
+										do {
+											pos = Dungeon.level.randomRespawnCell();
+											if (count-- <= 0) {
+												break;
+											}
+										} while (pos == -1);
 
-        charge = 0;
-        chargeCap = 3 + level();
+										if (pos == -1 || Dungeon.bossLevel()) {
 
-        defaultAction = AC_ZAP;
-        usesTargeting = true;
-    }
+											GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 
-    @Override
-    public void storeInBundle(Bundle bundle) {
-        super.storeInBundle(bundle);
-        bundle.put(DEPTH, returnDepth);
-        if (returnDepth != -1) {
-            bundle.put(POS, returnPos);
-        }
-    }
+										} else if (ch.properties().contains(Char.Property.IMMOVABLE)) {
 
-    @Override
-    public void restoreFromBundle(Bundle bundle) {
-        super.restoreFromBundle(bundle);
-        returnDepth = bundle.getInt(DEPTH);
-        returnPos = bundle.getInt(POS);
-    }
+											GLog.w( Messages.get(LloydsBeacon.class, "tele_fail") );
 
-    @Override
-    public ArrayList<String> actions(Hero hero) {
-        ArrayList<String> actions = super.actions(hero);
-        actions.add(AC_ZAP);
-        actions.add(AC_SET);
-        if (returnDepth != -1) {
-            actions.add(AC_RETURN);
-        }
-        return actions;
-    }
+										} else  {
 
-    @Override
-    public void execute(Hero hero, String action) {
+											ch.pos = pos;
+											ch.sprite.place(ch.pos);
+											ch.sprite.visible = Dungeon.visible[pos];
 
-        super.execute(hero, action);
+										}
+									}
+									curUser.spendAndNext(1f);
+								}
+							});
 
-        if (action == AC_SET || action == AC_RETURN) {
-
-            if (Dungeon.bossLevel()) {
-                hero.spend(LloydsBeacon.TIME_TO_USE);
-                GLog.w(Messages.get(this, "preventing"));
-                return;
-            }
-
-            for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
-                if (Actor.findChar(hero.pos + PathFinder.NEIGHBOURS8[i]) != null) {
-                    GLog.w(Messages.get(this, "creatures"));
-                    return;
-                }
-            }
-        }
-
-        if (action == AC_ZAP) {
-
-            curUser = hero;
-            int chargesToUse = Dungeon.depth > 20 ? 2 : 1;
-
-            if (!isEquipped(hero)) {
-                GLog.i(Messages.get(Artifact.class, "need_to_equip"));
-                QuickSlotButton.cancel();
-
-            } else if (charge < chargesToUse) {
-                GLog.i(Messages.get(this, "no_charge"));
-                QuickSlotButton.cancel();
-
-            } else {
-                GameScene.selectCell(zapper);
-            }
-
-        } else if (action == AC_SET) {
-
-            returnDepth = Dungeon.depth;
-            returnPos = hero.pos;
-
-            hero.spend(LloydsBeacon.TIME_TO_USE);
-            hero.busy();
-
-            hero.sprite.operate(hero.pos);
-            Sample.INSTANCE.play(Assets.SND_BEACON);
-
-            GLog.i(Messages.get(this, "return"));
-
-        } else if (action == AC_RETURN) {
-
-            if (returnDepth == Dungeon.depth) {
-                ScrollOfTeleportation.appear(hero, returnPos);
-                Dungeon.level.press(returnPos, hero);
-                Dungeon.observe();
-                GameScene.updateFog();
-            } else {
-
-                Buff buff = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-                if (buff != null) buff.detach();
-
-                for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0]))
-                    if (mob instanceof DriedRose.GhostHero) mob.destroy();
-
-                InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                InterlevelScene.returnDepth = returnDepth;
-                InterlevelScene.returnPos = returnPos;
-                Game.switchScene(InterlevelScene.class);
-            }
+				}
 
 
-        }
-    }
+			}
 
-    @Override
-    protected ArtifactBuff passiveBuff() {
-        return new beaconRecharge();
-    }
+		}
 
-    @Override
-    public Item upgrade() {
-        if (level() == levelCap) return this;
-        chargeCap++;
-        GLog.p(Messages.get(this, "levelup"));
-        return super.upgrade();
-    }
+		@Override
+		public String prompt() {
+			return Messages.get(LloydsBeacon.class, "prompt");
+		}
+	};
 
-    @Override
-    public String desc() {
-        String desc = super.desc();
-        if (returnDepth != -1) {
-            desc += "\n\n" + Messages.get(this, "desc_set", returnDepth);
-        }
-        return desc;
-    }
+	@Override
+	protected ArtifactBuff passiveBuff() {
+		return new beaconRecharge();
+	}
 
-    @Override
-    public Glowing glowing() {
-        return returnDepth != -1 ? WHITE : null;
-    }
+	@Override
+	public Item upgrade() {
+		if (level() == levelCap) return this;
+		chargeCap ++;
+		GLog.p( Messages.get(this, "levelup") );
+		return super.upgrade();
+	}
 
-    public class beaconRecharge extends ArtifactBuff {
-        @Override
-        public boolean act() {
-            LockedFloor lock = target.buff(LockedFloor.class);
-            if (charge < chargeCap && !cursed && (lock == null || lock.regenOn())) {
-                partialCharge += 1 / (100f - (chargeCap - charge) * 10f);
+	@Override
+	public String desc() {
+		String desc = super.desc();
+		if (returnDepth != -1){
+			desc += "\n\n" + Messages.get(this, "desc_set", returnDepth);
+		}
+		return desc;
+	}
+	
+	private static final Glowing WHITE = new Glowing( 0xFFFFFF );
+	
+	@Override
+	public Glowing glowing() {
+		return returnDepth != -1 ? WHITE : null;
+	}
 
-                if (partialCharge >= 1) {
-                    partialCharge--;
-                    charge++;
+	public class beaconRecharge extends ArtifactBuff{
+		@Override
+		public boolean act() {
+			LockedFloor lock = target.buff(LockedFloor.class);
+			if (charge < chargeCap && !cursed && (lock == null || lock.regenOn())) {
+				partialCharge += 1 / (100f - (chargeCap - charge)*10f);
 
-                    if (charge == chargeCap) {
-                        partialCharge = 0;
-                    }
-                }
-            }
+				if (partialCharge >= 1) {
+					partialCharge --;
+					charge ++;
 
-            updateQuickslot();
-            spend(TICK);
-            return true;
-        }
-    }
+					if (charge == chargeCap){
+						partialCharge = 0;
+					}
+				}
+			}
+
+			updateQuickslot();
+			spend( TICK );
+			return true;
+		}
+	}
 }

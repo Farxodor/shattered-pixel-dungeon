@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -35,47 +36,61 @@ import com.watabou.noosa.audio.Sample;
 
 public class ScrollOfTerror extends Scroll {
 
-    {
-        initials = 10;
-    }
+	{
+		initials = 10;
+	}
 
-    @Override
-    protected void doRead() {
+	@Override
+	public void doRead() {
+		
+		new Flare( 5, 32 ).color( 0xFF0000, true ).show( curUser.sprite, 2f );
+		Sample.INSTANCE.play( Assets.SND_READ );
+		Invisibility.dispel();
+		
+		int count = 0;
+		Mob affected = null;
+		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
+			if (Level.fieldOfView[mob.pos]) {
+				Buff.affect( mob, Terror.class, Terror.DURATION ).object = curUser.id();
 
-        new Flare(5, 32).color(0xFF0000, true).show(curUser.sprite, 2f);
-        Sample.INSTANCE.play(Assets.SND_READ);
-        Invisibility.dispel();
+				if (mob.buff(Terror.class) != null){
+					count++;
+					affected = mob;
+				}
+			}
+		}
+		
+		switch (count) {
+		case 0:
+			GLog.i( Messages.get(this, "none") );
+			break;
+		case 1:
+			GLog.i( Messages.get(this, "one", affected.name) );
+			break;
+		default:
+			GLog.i( Messages.get(this, "many") );
+		}
+		setKnown();
 
-        int count = 0;
-        Mob affected = null;
-        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-            if (Level.fieldOfView[mob.pos]) {
-                Buff.affect(mob, Terror.class, Terror.DURATION).object = curUser.id();
-
-                if (mob.buff(Terror.class) != null) {
-                    count++;
-                    affected = mob;
-                }
-            }
-        }
-
-        switch (count) {
-            case 0:
-                GLog.i(Messages.get(this, "none"));
-                break;
-            case 1:
-                GLog.i(Messages.get(this, "one", affected.name));
-                break;
-            default:
-                GLog.i(Messages.get(this, "many"));
-        }
-        setKnown();
-
-        readAnimation();
-    }
-
-    @Override
-    public int price() {
-        return isKnown() ? 30 * quantity : super.price();
-    }
+		readAnimation();
+	}
+	
+	@Override
+	public void empoweredRead() {
+		doRead();
+		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
+			if (Level.fieldOfView[mob.pos]) {
+				Terror t = mob.buff(Terror.class);
+				if (t != null){
+					Buff.prolong(mob, Terror.class, Terror.DURATION*1.5f);
+					Buff.affect(mob, Paralysis.class, Terror.DURATION*.5f);
+				}
+			}
+		}
+	}
+	
+	@Override
+	public int price() {
+		return isKnown() ? 30 * quantity : super.price();
+	}
 }

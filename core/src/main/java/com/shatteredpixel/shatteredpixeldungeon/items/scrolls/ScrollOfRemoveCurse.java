@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -28,80 +30,90 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
-import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
+import com.watabou.noosa.audio.Sample;
 
 public class ScrollOfRemoveCurse extends InventoryScroll {
 
-    {
-        initials = 8;
-        mode = WndBag.Mode.UNIDED_OR_CURSED;
-    }
+	{
+		initials = 8;
+		mode = WndBag.Mode.UNIDED_OR_CURSED;
+	}
+	
+	@Override
+	public void empoweredRead() {
+		for (Item item : curUser.belongings){
+			if (item.cursed){
+				item.cursedKnown = true;
+			}
+		}
+		Sample.INSTANCE.play( Assets.SND_READ );
+		Invisibility.dispel();
+		doRead();
+	}
+	
+	@Override
+	protected void onItemSelected(Item item) {
+		new Flare( 6, 32 ).show( curUser.sprite, 2f ) ;
 
-    public static boolean uncurse(Hero hero, Item... items) {
+		boolean procced = uncurse( curUser, item );
 
-        boolean procced = false;
-        for (Item item : items) {
-            if (item != null && item.cursed) {
-                item.cursed = false;
-                procced = true;
-            }
-            if (item instanceof Weapon) {
-                Weapon w = (Weapon) item;
-                if (w.hasCurseEnchant()) {
-                    w.enchant(null);
-                    w.cursed = false;
-                    procced = true;
-                }
-            }
-            if (item instanceof Armor) {
-                Armor a = (Armor) item;
-                if (a.hasCurseGlyph()) {
-                    a.inscribe(null);
-                    a.cursed = false;
-                    procced = true;
-                }
-            }
-            if (item instanceof Ring && item.level() <= 0) {
-                item.upgrade(1 - item.level());
-            }
-            if (item instanceof Bag) {
-                for (Item bagItem : ((Bag) item).items) {
-                    if (bagItem != null && bagItem.cursed) {
-                        bagItem.cursed = false;
-                        procced = true;
-                    }
-                }
-            }
-        }
+		Weakness.detach( curUser, Weakness.class );
 
-        if (procced) {
-            hero.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
-        }
+		if (procced) {
+			GLog.p( Messages.get(this, "cleansed") );
+		} else {
+			GLog.i( Messages.get(this, "not_cleansed") );
+		}
+	}
 
-        return procced;
-    }
-
-    @Override
-    protected void onItemSelected(Item item) {
-        new Flare(6, 32).show(curUser.sprite, 2f);
-
-        boolean procced = uncurse(curUser, item);
-
-        Weakness.detach(curUser, Weakness.class);
-
-        if (procced) {
-            GLog.p(Messages.get(this, "cleansed"));
-        } else {
-            GLog.i(Messages.get(this, "not_cleansed"));
-        }
-    }
-
-    @Override
-    public int price() {
-        return isKnown() ? 30 * quantity : super.price();
-    }
+	public static boolean uncurse( Hero hero, Item... items ) {
+		
+		boolean procced = false;
+		for (Item item : items) {
+			if (item != null && item.cursed) {
+				item.cursed = false;
+				procced = true;
+			}
+			if (item instanceof Weapon){
+				Weapon w = (Weapon) item;
+				if (w.hasCurseEnchant()){
+					w.enchant(null);
+					w.cursed = false;
+					procced = true;
+				}
+			}
+			if (item instanceof Armor){
+				Armor a = (Armor) item;
+				if (a.hasCurseGlyph()){
+					a.inscribe(null);
+					a.cursed = false;
+					procced = true;
+				}
+			}
+			if (item instanceof Bag){
+				for (Item bagItem : ((Bag)item).items){
+					if (bagItem != null && bagItem.cursed) {
+						bagItem.cursed = false;
+						procced = true;
+					}
+				}
+			}
+		}
+		
+		if (procced) {
+			hero.sprite.emitter().start( ShadowParticle.UP, 0.05f, 10 );
+			hero.updateHT( false ); //for ring of might
+		}
+		
+		return procced;
+	}
+	
+	@Override
+	public int price() {
+		return isKnown() ? 30 * quantity : super.price();
+	}
 }

@@ -22,62 +22,75 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Random;
 
 public class RingOfForce extends Ring {
 
-    private static float tier(int str) {
-        float tier = Math.max(1, (str - 8) / 2f);
-        //each str point after 18 is half as effective
-        if (tier > 5) {
-            tier = 5 + (tier - 5) / 2f;
-        }
-        return tier;
-    }
+	@Override
+	protected RingBuff buff( ) {
+		return new Force();
+	}
+	
+	public static int armedDamageBonus( Char ch ){
+		return getBonus( ch, Force.class);
+	}
+	
+	
+	// *** Weapon-like properties ***
 
-    public static int damageRoll(Hero hero) {
-        int level = getBonus(hero, Force.class);
-        float tier = tier(hero.STR());
-        return Random.NormalIntRange(min(level, tier), max(level, tier));
-    }
+	private static float tier(int str){
+		float tier = Math.max(1, (str - 8)/2f);
+		//each str point after 18 is half as effective
+		if (tier > 5){
+			tier = 5 + (tier - 5) / 2f;
+		}
+		return tier;
+	}
 
-    //same as equivalent tier weapon
-    private static int min(int lvl, float tier) {
-        return Math.round(
-                tier +  //base
-                        lvl     //level scaling
-        );
-    }
+	public static int damageRoll( Hero hero ){
+		if (hero.buff(Force.class) != null) {
+			int level = getBonus(hero, Force.class);
+			float tier = tier(hero.STR());
+			return Random.NormalIntRange(min(level, tier), max(level, tier));
+		} else {
+			//attack without any ring of force influence
+			return Random.NormalIntRange(1, Math.max(hero.STR()-8, 1));
+		}
+	}
 
-    //same as equivalent tier weapon
-    private static int max(int lvl, float tier) {
-        return Math.round(
-                5 * (tier + 1) +    //base
-                        lvl * (tier + 1)    //level scaling
-        );
-    }
+	//same as equivalent tier weapon
+	private static int min(int lvl, float tier){
+		return Math.round(
+				tier +  //base
+				lvl     //level scaling
+		);
+	}
 
-    @Override
-    protected RingBuff buff() {
-        return new Force();
-    }
+	//same as equivalent tier weapon
+	private static int max(int lvl, float tier){
+		return Math.round(
+				5*(tier+1) +    //base
+				lvl*(tier+1)    //level scaling
+		);
+	}
 
-    @Override
-    public String desc() {
-        String desc = super.desc();
-        float tier = tier(Dungeon.hero.STR());
-        if (levelKnown) {
-            desc += "\n\n" + Messages.get(this, "avg_dmg", min(level(), tier), max(level(), tier));
-        } else {
-            desc += "\n\n" + Messages.get(this, "typical_avg_dmg", min(1, tier), max(1, tier));
-        }
+	@Override
+	public String desc() {
+		String desc = super.desc();
+		float tier = tier(Dungeon.hero.STR());
+		if (levelKnown) {
+			desc += "\n\n" + Messages.get(this, "avg_dmg", min(level(), tier), max(level(), tier));
+		} else {
+			desc += "\n\n" + Messages.get(this, "typical_avg_dmg", min(1, tier), max(1, tier));
+		}
 
-        return desc;
-    }
+		return desc;
+	}
 
-    public class Force extends RingBuff {
-    }
+	public class Force extends RingBuff {
+	}
 }
 

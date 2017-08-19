@@ -22,35 +22,34 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements.Resistance;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 public class Vertigo extends FlavourBuff {
 
-    public static final float DURATION = 10f;
+	public static final float DURATION	= 10f;
 
-    {
-        type = buffType.NEGATIVE;
-    }
+	{
+		type = buffType.NEGATIVE;
+	}
 
-    public static float duration(Char ch) {
-        Resistance r = ch.buff(Resistance.class);
-        return r != null ? r.durationFactor() * DURATION : DURATION;
-    }
+	@Override
+	public int icon() {
+		return BuffIndicator.VERTIGO;
+	}
 
-    @Override
-    public int icon() {
-        return BuffIndicator.VERTIGO;
-    }
+	@Override
+	public String toString() {
+		return Messages.get(this, "name");
+	}
 
-    @Override
-    public String toString() {
-        return Messages.get(this, "name");
-    }
+	@Override
+	public String desc() {
+		return Messages.get(this, "desc", dispTurns());
+	}
 
-    @Override
-    public String desc() {
-        return Messages.get(this, "desc", dispTurns());
-    }
+	public static float duration( Char ch ) {
+		return DURATION * RingOfElements.durationFactor( ch );
+	}
 }

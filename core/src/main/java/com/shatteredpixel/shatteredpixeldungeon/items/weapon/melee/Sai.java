@@ -21,26 +21,26 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class Sai extends MeleeWeapon {
 
-    {
-        image = ItemSpriteSheet.SAI;
+	{
+		image = ItemSpriteSheet.SAI;
 
-        tier = 3;
-        DLY = 0.5f; //2x speed
-    }
+		tier = 3;
+		DLY = 0.5f; //2x speed
+	}
 
-    @Override
-    public int max(int lvl) {
-        return Math.round(2.5f * (tier + 1)) +     //10 base, down from 20
-                lvl * Math.round(0.5f * (tier + 1));  //+2 per level, down from +4
-    }
+	@Override
+	public int max(int lvl) {
+		return  Math.round(2.5f*(tier+1)) +     //10 base, down from 20
+				lvl*Math.round(0.5f*(tier+1));  //+2 per level, down from +4
+	}
 
-    @Override
-    public int defenseFactor(Hero hero) {
-        return 3;    //3 extra defence
-    }
+	@Override
+	public int defenseFactor( Char owner ) {
+		return 3;	//3 extra defence
+	}
 }

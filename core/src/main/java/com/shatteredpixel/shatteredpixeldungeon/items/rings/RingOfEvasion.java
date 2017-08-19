@@ -21,13 +21,23 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+
 public class RingOfEvasion extends Ring {
+	
+	@Override
+	protected RingBuff buff( ) {
+		return new Evasion();
+	}
+	
+	public static float evasionMultiplier( Char target ){
+		return (float) Math.pow( 1.15, getBonus(target, Evasion.class));
+	}
+	
+	public static int stealthBonus( Char target ){
+		return getBonus( target, Evasion.class );
+	}
 
-    @Override
-    protected RingBuff buff() {
-        return new Evasion();
-    }
-
-    public class Evasion extends RingBuff {
-    }
+	public class Evasion extends RingBuff {
+	}
 }

@@ -32,125 +32,129 @@ import java.util.regex.Pattern;
 
 public class GameLog extends Component implements Signal.Listener<String> {
 
-    private static final int MAX_LINES = 3;
+	private static final int MAX_LINES = 3;
 
-    private static final Pattern PUNCTUATION = Pattern.compile(".*[.,;?! ]$");
-    private static ArrayList<Entry> entries = new ArrayList<Entry>();
-    private RenderedTextMultiline lastEntry;
-    private int lastColor;
+	private static final Pattern PUNCTUATION = Pattern.compile( ".*[.,;?! ]$" );
 
-    public GameLog() {
-        super();
-        GLog.update.replace(this);
+	private RenderedTextMultiline lastEntry;
+	private int lastColor;
 
-        recreateLines();
-    }
+	private static ArrayList<Entry> entries = new ArrayList<Entry>();
 
-    public static void wipe() {
-        entries.clear();
-    }
+	public GameLog() {
+		super();
+		GLog.update.replace( this );
 
-    private void recreateLines() {
-        for (Entry entry : entries) {
-            lastEntry = PixelScene.renderMultiline(entry.text, 6);
-            lastEntry.hardlight(lastColor = entry.color);
-            add(lastEntry);
-        }
-    }
+		recreateLines();
+	}
 
-    public void newLine() {
-        lastEntry = null;
-    }
+	private synchronized void recreateLines() {
+		for (Entry entry : entries) {
+			lastEntry = PixelScene.renderMultiline( entry.text, 6 );
+			lastEntry.hardlight( lastColor = entry.color );
+			add( lastEntry );
+		}
+	}
 
-    @Override
-    public void onSignal(String text) {
+	public synchronized void newLine() {
+		lastEntry = null;
+	}
 
-        if (length != entries.size()) {
-            clear();
-            recreateLines();
-        }
+	@Override
+	public synchronized void onSignal( String text ) {
 
-        int color = CharSprite.DEFAULT;
-        if (text.startsWith(GLog.POSITIVE)) {
-            text = text.substring(GLog.POSITIVE.length());
-            color = CharSprite.POSITIVE;
-        } else if (text.startsWith(GLog.NEGATIVE)) {
-            text = text.substring(GLog.NEGATIVE.length());
-            color = CharSprite.NEGATIVE;
-        } else if (text.startsWith(GLog.WARNING)) {
-            text = text.substring(GLog.WARNING.length());
-            color = CharSprite.WARNING;
-        } else if (text.startsWith(GLog.HIGHLIGHT)) {
-            text = text.substring(GLog.HIGHLIGHT.length());
-            color = CharSprite.NEUTRAL;
-        }
+		if (length != entries.size()){
+			clear();
+			recreateLines();
+		}
 
-        if (lastEntry != null && color == lastColor && lastEntry.nLines < MAX_LINES) {
+		int color = CharSprite.DEFAULT;
+		if (text.startsWith( GLog.POSITIVE )) {
+			text = text.substring( GLog.POSITIVE.length() );
+			color = CharSprite.POSITIVE;
+		} else
+		if (text.startsWith( GLog.NEGATIVE )) {
+			text = text.substring( GLog.NEGATIVE.length() );
+			color = CharSprite.NEGATIVE;
+		} else
+		if (text.startsWith( GLog.WARNING )) {
+			text = text.substring( GLog.WARNING.length() );
+			color = CharSprite.WARNING;
+		} else
+		if (text.startsWith( GLog.HIGHLIGHT )) {
+			text = text.substring( GLog.HIGHLIGHT.length() );
+			color = CharSprite.NEUTRAL;
+		}
 
-            String lastMessage = lastEntry.text();
-            lastEntry.text(lastMessage.length() == 0 ? text : lastMessage + " " + text);
+		if (lastEntry != null && color == lastColor && lastEntry.nLines < MAX_LINES) {
 
-            entries.get(entries.size() - 1).text = lastEntry.text();
+			String lastMessage = lastEntry.text();
+			lastEntry.text( lastMessage.length() == 0 ? text : lastMessage + " " + text );
 
-        } else {
+			entries.get( entries.size() - 1 ).text = lastEntry.text();
 
-            lastEntry = PixelScene.renderMultiline(text, 6);
-            lastEntry.hardlight(color);
-            lastColor = color;
-            add(lastEntry);
+		} else {
 
-            entries.add(new Entry(text, color));
+			lastEntry = PixelScene.renderMultiline( text, 6 );
+			lastEntry.hardlight( color );
+			lastColor = color;
+			add( lastEntry );
 
-        }
+			entries.add( new Entry( text, color ) );
 
-        if (length > 0) {
-            int nLines;
-            do {
-                nLines = 0;
-                for (int i = 0; i < length - 1; i++) {
-                    nLines += ((RenderedTextMultiline) members.get(i)).nLines;
-                }
+		}
 
-                if (nLines > MAX_LINES) {
-                    RenderedTextMultiline r = ((RenderedTextMultiline) members.get(0));
-                    remove(r);
-                    r.destroy();
+		if (length > 0) {
+			int nLines;
+			do {
+				nLines = 0;
+				for (int i = 0; i < length-1; i++) {
+					nLines += ((RenderedTextMultiline) members.get(i)).nLines;
+				}
 
-                    entries.remove(0);
-                }
-            } while (nLines > MAX_LINES);
-            if (entries.isEmpty()) {
-                lastEntry = null;
-            }
-        }
+				if (nLines > MAX_LINES) {
+					RenderedTextMultiline r = ((RenderedTextMultiline) members.get(0));
+					remove(r);
+					r.destroy();
 
-        layout();
-    }
+					entries.remove( 0 );
+				}
+			} while (nLines > MAX_LINES);
+			if (entries.isEmpty()) {
+				lastEntry = null;
+			}
+		}
 
-    @Override
-    protected void layout() {
-        float pos = y;
-        for (int i = length - 1; i >= 0; i--) {
-            RenderedTextMultiline entry = (RenderedTextMultiline) members.get(i);
-            entry.maxWidth((int) width);
-            entry.setPos(x, pos - entry.height());
-            pos -= entry.height();
-        }
-    }
+		layout();
+	}
 
-    @Override
-    public void destroy() {
-        GLog.update.remove(this);
-        super.destroy();
-    }
+	@Override
+	protected void layout() {
+		float pos = y;
+		for (int i=length-1; i >= 0; i--) {
+			RenderedTextMultiline entry = (RenderedTextMultiline)members.get( i );
+			entry.maxWidth((int)width);
+			entry.setPos(x, pos-entry.height());
+			pos -= entry.height();
+		}
+	}
 
-    private static class Entry {
-        public String text;
-        public int color;
+	@Override
+	public void destroy() {
+		GLog.update.remove( this );
+		super.destroy();
+	}
 
-        public Entry(String text, int color) {
-            this.text = text;
-            this.color = color;
-        }
-    }
+	private static class Entry {
+		public String text;
+		public int color;
+		public Entry( String text, int color ) {
+			this.text = text;
+			this.color = color;
+		}
+	}
+
+	public static void wipe() {
+		entries.clear();
+	}
 }

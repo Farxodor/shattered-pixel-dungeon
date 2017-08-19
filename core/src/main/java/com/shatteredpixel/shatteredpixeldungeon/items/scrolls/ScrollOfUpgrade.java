@@ -36,100 +36,92 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 
 public class ScrollOfUpgrade extends InventoryScroll {
+	
+	{
+		initials = 11;
+		mode = WndBag.Mode.UPGRADEABLE;
 
-    {
-        initials = 11;
-        mode = WndBag.Mode.UPGRADEABLE;
+		bones = true;
+	}
+	
+	@Override
+	protected void onItemSelected( Item item ) {
 
-        bones = true;
-    }
+		upgrade( curUser );
 
-    public static void upgrade(Hero hero) {
-        hero.sprite.emitter().start(Speck.factory(Speck.UP), 0.2f, 3);
-    }
+		//logic for telling the user when item properties change from upgrades
+		//...yes this is rather messy
+		if (item instanceof Weapon){
+			Weapon w = (Weapon) item;
+			boolean wasCursed = w.cursed;
+			boolean hadCursedEnchant = w.hasCurseEnchant();
+			boolean hadGoodEnchant = w.hasGoodEnchant();
 
-    public static void weakenCurse(Hero hero) {
-        GLog.p(Messages.get(ScrollOfUpgrade.class, "weaken_curse"));
-        hero.sprite.emitter().start(ShadowParticle.UP, 0.05f, 5);
-    }
+			w.upgrade();
 
-    public static void removeCurse(Hero hero) {
-        GLog.p(Messages.get(ScrollOfUpgrade.class, "remove_curse"));
-        hero.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
-    }
+			if (hadCursedEnchant && !w.hasCurseEnchant()){
+				removeCurse( Dungeon.hero );
+			} else if (wasCursed && !w.cursed){
+				weakenCurse( Dungeon.hero );
+			}
+			if (hadGoodEnchant && !w.hasGoodEnchant()){
+				GLog.w( Messages.get(Weapon.class, "incompatible") );
+			}
 
-    @Override
-    protected void onItemSelected(Item item) {
+		} else if (item instanceof Armor){
+			Armor a = (Armor) item;
+			boolean wasCursed = a.cursed;
+			boolean hadCursedGlyph = a.hasCurseGlyph();
+			boolean hadGoodGlyph = a.hasGoodGlyph();
 
-        upgrade(curUser);
+			a.upgrade();
 
-        //logic for telling the user when item properties change from upgrades
-        //...yes this is rather messy
-        if (item instanceof Weapon) {
-            Weapon w = (Weapon) item;
-            boolean wasCursed = w.cursed;
-            boolean hadCursedEnchant = w.hasCurseEnchant();
-            boolean hadGoodEnchant = w.hasGoodEnchant();
+			if (hadCursedGlyph && !a.hasCurseGlyph()){
+				removeCurse( Dungeon.hero );
+			} else if (wasCursed && !a.cursed){
+				weakenCurse( Dungeon.hero );
+			}
+			if (hadGoodGlyph && !a.hasGoodGlyph()){
+				GLog.w( Messages.get(Armor.class, "incompatible") );
+			}
 
-            w.upgrade();
+		} else if (item instanceof Wand || item instanceof Ring) {
+			boolean wasCursed = item.cursed;
 
-            if (hadCursedEnchant && !w.hasCurseEnchant()) {
-                removeCurse(Dungeon.hero);
-            } else if (wasCursed && !w.cursed) {
-                weakenCurse(Dungeon.hero);
-            }
-            if (hadGoodEnchant && !w.hasGoodEnchant()) {
-                GLog.w(Messages.get(Weapon.class, "incompatible"));
-            }
+			item.upgrade();
 
-        } else if (item instanceof Armor) {
-            Armor a = (Armor) item;
-            boolean wasCursed = a.cursed;
-            boolean hadCursedGlyph = a.hasCurseGlyph();
-            boolean hadGoodGlyph = a.hasGoodGlyph();
+			if (wasCursed && !item.cursed){
+				removeCurse( Dungeon.hero );
+			}
 
-            a.upgrade();
+		} else {
+			item.upgrade();
+		}
+		
+		Badges.validateItemLevelAquired( item );
+	}
+	
+	public static void upgrade( Hero hero ) {
+		hero.sprite.emitter().start( Speck.factory( Speck.UP ), 0.2f, 3 );
+	}
 
-            if (hadCursedGlyph && !a.hasCurseGlyph()) {
-                removeCurse(Dungeon.hero);
-            } else if (wasCursed && !a.cursed) {
-                weakenCurse(Dungeon.hero);
-            }
-            if (hadGoodGlyph && !a.hasGoodGlyph()) {
-                GLog.w(Messages.get(Armor.class, "incompatible"));
-            }
+	public static void weakenCurse( Hero hero ){
+		GLog.p( Messages.get(ScrollOfUpgrade.class, "weaken_curse") );
+		hero.sprite.emitter().start( ShadowParticle.UP, 0.05f, 5 );
+	}
 
-        } else if (item instanceof Wand) {
-            boolean wasCursed = item.cursed;
-
-            item.upgrade();
-
-            if (wasCursed && !item.cursed) {
-                removeCurse(Dungeon.hero);
-            }
-
-        } else if (item instanceof Ring) {
-            boolean wasCursed = item.cursed;
-
-            item.upgrade();
-
-            if (wasCursed && !item.cursed) {
-                if (item.level() < 1) {
-                    weakenCurse(Dungeon.hero);
-                } else {
-                    removeCurse(Dungeon.hero);
-                }
-            }
-
-        } else {
-            item.upgrade();
-        }
-
-        Badges.validateItemLevelAquired(item);
-    }
-
-    @Override
-    public int price() {
-        return isKnown() ? 50 * quantity : super.price();
-    }
+	public static void removeCurse( Hero hero ){
+		GLog.p( Messages.get(ScrollOfUpgrade.class, "remove_curse") );
+		hero.sprite.emitter().start( ShadowParticle.UP, 0.05f, 10 );
+	}
+	
+	@Override
+	public void empoweredRead() {
+		//does nothing for now, this should never happen.
+	}
+	
+	@Override
+	public int price() {
+		return isKnown() ? 50 * quantity : super.price();
+	}
 }

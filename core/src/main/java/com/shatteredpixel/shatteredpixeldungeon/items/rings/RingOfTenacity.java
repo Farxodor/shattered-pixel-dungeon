@@ -21,14 +21,21 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+
 public class RingOfTenacity extends Ring {
 
-    @Override
-    protected RingBuff buff() {
-        return new Tenacity();
-    }
+	@Override
+	protected RingBuff buff( ) {
+		return new Tenacity();
+	}
+	
+	public static float damageMultiplier( Char t ){
+		//(HT - HP)/HT = heroes current % missing health.
+		return (float)Math.pow(0.85, getBonus( t, Tenacity.class)*((float)(t.HT - t.HP)/t.HT));
+	}
 
-    public class Tenacity extends RingBuff {
-    }
+	public class Tenacity extends RingBuff {
+	}
 }
 

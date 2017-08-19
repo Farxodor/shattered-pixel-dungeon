@@ -28,90 +28,89 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 abstract public class KindOfWeapon extends EquipableItem {
+	
+	protected static final float TIME_TO_EQUIP = 1f;
+	
+	@Override
+	public boolean isEquipped( Hero hero ) {
+		return hero.belongings.weapon == this;
+	}
+	
+	@Override
+	public boolean doEquip( Hero hero ) {
 
-    protected static final float TIME_TO_EQUIP = 1f;
+		detachAll( hero.belongings.backpack );
+		
+		if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip( hero, true )) {
+			
+			hero.belongings.weapon = this;
+			activate( hero );
 
-    @Override
-    public boolean isEquipped(Hero hero) {
-        return hero.belongings.weapon == this;
-    }
+			updateQuickslot();
+			
+			cursedKnown = true;
+			if (cursed) {
+				equipCursed( hero );
+				GLog.n( Messages.get(KindOfWeapon.class, "cursed") );
+			}
+			
+			hero.spendAndNext( TIME_TO_EQUIP );
+			return true;
+			
+		} else {
+			
+			collect( hero.belongings.backpack );
+			return false;
+		}
+	}
 
-    @Override
-    public boolean doEquip(Hero hero) {
+	@Override
+	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+		if (super.doUnequip( hero, collect, single )) {
 
-        detachAll(hero.belongings.backpack);
+			hero.belongings.weapon = null;
+			return true;
 
-        if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip(hero, true)) {
+		} else {
 
-            hero.belongings.weapon = this;
-            activate(hero);
+			return false;
 
-            updateQuickslot();
+		}
+	}
 
-            cursedKnown = true;
-            if (cursed) {
-                equipCursed(hero);
-                GLog.n(Messages.get(KindOfWeapon.class, "cursed"));
-            }
+	public int min(){
+		return min(level());
+	}
 
-            hero.spendAndNext(TIME_TO_EQUIP);
-            return true;
+	public int max(){
+		return max(level());
+	}
 
-        } else {
+	abstract public int min(int lvl);
+	abstract public int max(int lvl);
 
-            collect(hero.belongings.backpack);
-            return false;
-        }
-    }
+	public int damageRoll( Char owner ) {
+		return Random.NormalIntRange( min(), max() );
+	}
+	
+	public float accuracyFactor( Char owner ) {
+		return 1f;
+	}
+	
+	public float speedFactor( Char owner ) {
+		return 1f;
+	}
 
-    @Override
-    public boolean doUnequip(Hero hero, boolean collect, boolean single) {
-        if (super.doUnequip(hero, collect, single)) {
+	public int reachFactor( Char owner ){
+		return 1;
+	}
 
-            hero.belongings.weapon = null;
-            return true;
-
-        } else {
-
-            return false;
-
-        }
-    }
-
-    public int min() {
-        return min(level());
-    }
-
-    public int max() {
-        return max(level());
-    }
-
-    abstract public int min(int lvl);
-
-    abstract public int max(int lvl);
-
-    public int damageRoll(Hero owner) {
-        return Random.NormalIntRange(min(), max());
-    }
-
-    public float accuracyFactor(Hero hero) {
-        return 1f;
-    }
-
-    public float speedFactor(Hero hero) {
-        return 1f;
-    }
-
-    public int reachFactor(Hero hero) {
-        return 1;
-    }
-
-    public int defenseFactor(Hero hero) {
-        return 0;
-    }
-
-    public int proc(Char attacker, Char defender, int damage) {
-        return damage;
-    }
-
+	public int defenseFactor( Char owner ) {
+		return 0;
+	}
+	
+	public int proc( Char attacker, Char defender, int damage ) {
+		return damage;
+	}
+	
 }

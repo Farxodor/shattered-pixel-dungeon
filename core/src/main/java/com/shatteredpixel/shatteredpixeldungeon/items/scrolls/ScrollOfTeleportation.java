@@ -23,79 +23,127 @@ package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.AlphaTweener;
+import com.watabou.utils.PathFinder;
 
 public class ScrollOfTeleportation extends Scroll {
 
-    {
-        initials = 9;
-    }
+	{
+		initials = 9;
+	}
 
-    public static void teleportHero(Hero hero) {
+	@Override
+	public void doRead() {
 
-        int count = 10;
-        int pos;
-        do {
-            pos = Dungeon.level.randomRespawnCell();
-            if (count-- <= 0) {
-                break;
-            }
-        } while (pos == -1);
+		Sample.INSTANCE.play( Assets.SND_READ );
+		Invisibility.dispel();
+		
+		teleportHero( curUser );
+		setKnown();
 
-        if (pos == -1 || Dungeon.bossLevel()) {
+		readAnimation();
+	}
+	
+	@Override
+	public void empoweredRead() {
+		
+		if (Dungeon.bossLevel()){
+			GLog.w( Messages.get(this, "no_tele") );
+			return;
+		}
+		
+		GameScene.selectCell(new CellSelector.Listener() {
+			@Override
+			public void onSelect(Integer target) {
+				if (target != null) {
+					//time isn't spent
+					((HeroSprite)curUser.sprite).read();
+					teleportToLocation(curUser, target);
+				}
+			}
+			
+			@Override
+			public String prompt() {
+				return Messages.get(ScrollOfTeleportation.class, "prompt");
+			}
+		});
+	}
+	
+	public static void teleportToLocation(Hero hero, int pos){
+		PathFinder.buildDistanceMap(pos, BArray.or(Level.passable, Level.avoid, null));
+		if (PathFinder.distance[hero.pos] == Integer.MAX_VALUE
+				|| (!Level.passable[pos] && !Level.avoid[pos])
+				|| Actor.findChar(pos) != null){
+			GLog.w( Messages.get(ScrollOfTeleportation.class, "cant_reach") );
+			return;
+		}
+		
+		appear( hero, pos );
+		Dungeon.level.press( pos, hero );
+		Dungeon.observe();
+		GameScene.updateFog();
+		
+		GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
+	}
+	
+	public static void teleportHero(Hero  hero ) {
 
-            GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
+		int count = 10;
+		int pos;
+		do {
+			pos = Dungeon.level.randomRespawnCell();
+			if (count-- <= 0) {
+				break;
+			}
+		} while (pos == -1);
+		
+		if (pos == -1 || Dungeon.bossLevel()) {
+			
+			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
+			
+		} else {
 
-        } else {
+			appear( hero, pos );
+			Dungeon.level.press( pos, hero );
+			Dungeon.observe();
+			GameScene.updateFog();
+			
+			GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
+			
+		}
+	}
 
-            appear(hero, pos);
-            Dungeon.level.press(pos, hero);
-            Dungeon.observe();
-            GameScene.updateFog();
+	public static void appear( Char ch, int pos ) {
 
-            GLog.i(Messages.get(ScrollOfTeleportation.class, "tele"));
+		ch.sprite.interruptMotion();
 
-        }
-    }
+		ch.move( pos );
+		ch.sprite.place( pos );
 
-    public static void appear(Char ch, int pos) {
+		if (ch.invisible == 0) {
+			ch.sprite.alpha( 0 );
+			ch.sprite.parent.add( new AlphaTweener( ch.sprite, 1, 0.4f ) );
+		}
 
-        ch.sprite.interruptMotion();
-
-        ch.move(pos);
-        ch.sprite.place(pos);
-
-        if (ch.invisible == 0) {
-            ch.sprite.alpha(0);
-            ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
-        }
-
-        ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
-        Sample.INSTANCE.play(Assets.SND_TELEPORT);
-    }
-
-    @Override
-    protected void doRead() {
-
-        Sample.INSTANCE.play(Assets.SND_READ);
-        Invisibility.dispel();
-
-        teleportHero(curUser);
-        setKnown();
-
-        readAnimation();
-    }
-
-    @Override
-    public int price() {
-        return isKnown() ? 30 * quantity : super.price();
-    }
+		ch.sprite.emitter().start( Speck.factory(Speck.LIGHT), 0.2f, 3 );
+		Sample.INSTANCE.play( Assets.SND_TELEPORT );
+	}
+	
+	@Override
+	public int price() {
+		return isKnown() ? 30 * quantity : super.price();
+	}
 }
