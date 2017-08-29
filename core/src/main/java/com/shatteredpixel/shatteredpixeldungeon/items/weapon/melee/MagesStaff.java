@@ -79,6 +79,7 @@ public class MagesStaff extends MeleeWeapon {
 
 	@Override
 	public int max(int lvl) {
+		/*
 		if (Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
 			int scalingLevels = Math.min(SCALING_CAP, lvl);
 			int flatLevels = Math.max(0, lvl - SCALING_CAP);
@@ -87,6 +88,7 @@ public class MagesStaff extends MeleeWeapon {
 					(scalingLevels * (scalingLevels + 3) / 2) + //Each upgrade is stronger than the last (+2, +3, +4, ...)
 					(SCALING_CAP + 1) * flatLevels; //To a max of +6
 		}
+		*/
 
 		return 4 * (tier + 1) +    //8 base damage, down from 10
 				lvl * (tier + 1);   //scaling unaffected
@@ -138,12 +140,23 @@ public class MagesStaff extends MeleeWeapon {
 		}
 	}
 
+	private int battleMageDamagePerCharge() {
+		return 2;
+	}
+
+	private int battleMageBonusDamage() {
+		return Random.Int(battleMageDamagePerCharge() * wand.curCharges);
+	}
+
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
 		if (wand != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
 			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.33f;
 			ScrollOfRecharging.charge((Hero)attacker);
 			wand.onHit(this, attacker, defender, damage);
+
+			//Bonus damage for current charges
+			damage += battleMageBonusDamage();
 		}
 		return super.proc(attacker, defender, damage);
 	}
@@ -270,6 +283,10 @@ public class MagesStaff extends MeleeWeapon {
 			info += "\n\n" + Messages.get(this, "no_wand");
 		} else {
 			info += "\n\n" + Messages.get(this, "has_wand", Messages.get(wand, "name")) + " " + wand.statsDesc();
+		}
+
+		if (wand != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
+			info += "\n\n" + Messages.get(this, "battlemage",  this.battleMageDamagePerCharge());
 		}
 
 		return info;
