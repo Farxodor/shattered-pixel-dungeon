@@ -54,6 +54,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
     private static final String MISSES = "misses";
     private int count = 0;
     private float comboTime = 0f;
+    private float comboTimeInterval = 3f;
     private int misses = 0;
     private CellSelector.Listener finisher = new CellSelector.Listener() {
 
@@ -233,7 +234,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
     public void hit() {
 
         count++;
-        comboTime = 4f;
+        comboTime = comboTimeInterval;
         misses = 0;
 
         if (count >= 2) {
@@ -249,7 +250,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
     public void miss() {
         misses++;
-        comboTime = 4f;
+        comboTime = comboTimeInterval;
         if (misses >= 2) {
             detach();
         }
@@ -266,7 +267,12 @@ public class Combo extends Buff implements ActionIndicator.Action {
         comboTime -= TICK;
         spend(TICK);
         if (comboTime <= 0) {
-            detach();
+            //Drop off combo stacks one at a time
+            count--;
+            comboTime = comboTimeInterval;
+            if (count < 1) {
+                detach();
+            }
         }
         return true;
     }
