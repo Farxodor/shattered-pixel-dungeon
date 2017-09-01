@@ -52,9 +52,7 @@ public class Boomerang extends MissileWeapon {
 	}
 
     private int getTier() {
-        if(Statistics.deepestFloor > 25)
-            return 6; //Player beat yog, enjoy OP weapon
-        else if(Statistics.deepestFloor > 20)
+        if(Statistics.deepestFloor > 20)
             return 5;
         else if(Statistics.deepestFloor > 15)
             return 4;
