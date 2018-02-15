@@ -127,12 +127,19 @@ public class MagesStaff extends MeleeWeapon {
 		}
 	}
 
+	private int battleMageDamageBonus() {
+		return (int)Math.round(1.5 * wand.curCharges);
+	}
+
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
 		if (wand != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
 			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.33f;
 			ScrollOfRecharging.charge((Hero)attacker);
 			wand.onHit(this, attacker, defender, damage);
+
+			//Battlemage bonus damage for charges
+			damage += Random.Int(this.battleMageDamageBonus());
 		}
 		return super.proc(attacker, defender, damage);
 	}
@@ -267,6 +274,10 @@ public class MagesStaff extends MeleeWeapon {
 			info += "\n\n" + Messages.get(this, "no_wand");
 		} else {
 			info += "\n\n" + Messages.get(this, "has_wand", Messages.get(wand, "name")) + " " + wand.statsDesc();
+		}
+
+		if (wand != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE) {
+			info += "\n\n" + Messages.get(this, "battlemage",  this.battleMageDamageBonus());
 		}
 
 		return info;
