@@ -50,6 +50,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 	
 	private int count = 0;
 	private float comboTime = 0f;
+	private float comboTimeInterval = 2f;
 	private int misses = 0;
 	
 	@Override
@@ -74,7 +75,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 	public void hit() {
 		
 		count++;
-		comboTime = 4f;
+		comboTime = comboTimeInterval;
 		misses = 0;
 		BuffIndicator.refreshHero();
 		
@@ -91,7 +92,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
 	public void miss(){
 		misses++;
-		comboTime = 4f;
+		comboTime = comboTimeInterval;
 		if (misses >= 2){
 			detach();
 		}
@@ -109,7 +110,12 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		spend(TICK);
 		BuffIndicator.refreshHero();
 		if (comboTime <= 0) {
-			detach();
+			//Drop off combo stacks one at a time
+			count--;
+			comboTime = comboTimeInterval;
+			if (count < 1) {
+				detach();
+			}
 		}
 		return true;
 	}
