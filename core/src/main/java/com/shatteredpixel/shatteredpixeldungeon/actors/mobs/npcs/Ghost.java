@@ -309,15 +309,18 @@ public class Ghost extends NPC {
 				} else {
 					itemLevel = 3;
 				}
+				//10% to be enchanted
+				boolean enchanted = Random.Int(10) == 0;
+				if(!enchanted && itemLevel == 0) {
+					itemLevel = 1; //Ghost doesn't award +0 unenchanted items
+				}
 				weapon.upgrade(itemLevel);
 				armor.upgrade(itemLevel);
 
-				//10% to be enchanted
-				if (Random.Int(10) == 0){
+				if (enchanted){
 					weapon.enchant();
 					armor.inscribe();
 				}
-
 			}
 		}
 		
