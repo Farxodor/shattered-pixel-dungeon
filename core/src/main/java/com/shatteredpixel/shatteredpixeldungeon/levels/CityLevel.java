@@ -99,7 +99,7 @@ public class CityLevel extends RegularLevel {
 		return new float[]{ 8, 8, 8, 8, 8,
 				4, 4, 4, 4, 4,
 				2, 2, 2,
-				1, 1 };
+				0, 1 };
 	}
 	
 	@Override
