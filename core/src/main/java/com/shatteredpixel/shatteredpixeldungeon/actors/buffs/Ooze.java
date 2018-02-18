@@ -66,7 +66,7 @@ public class Ooze extends Buff {
 			}
 			spend( TICK );
 		}
-		if (Dungeon.level.water[target.pos]) {
+		if (Dungeon.level.water[target.pos] || Random.Int(30) == 0) {
 			detach();
 		}
 		return true;
