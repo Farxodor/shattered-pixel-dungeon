@@ -113,6 +113,8 @@ public class Combo extends Buff implements ActionIndicator.Action {
 			//Drop off combo stacks one at a time
 			count--;
 			comboTime = comboTimeInterval;
+			if (count >= 2)
+				ActionIndicator.setAction( this );
 			if (count < 1) {
 				detach();
 			}
