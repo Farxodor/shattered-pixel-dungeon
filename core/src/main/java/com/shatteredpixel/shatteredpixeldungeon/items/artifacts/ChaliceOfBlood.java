@@ -146,10 +146,17 @@ public class ChaliceOfBlood extends Artifact {
 				desc += Messages.get(this, "desc_cursed");
 			else if (level() == 0)
 				desc += Messages.get(this, "desc_1");
+
 			else if (level() < levelCap)
 				desc += Messages.get(this, "desc_2");
 			else
 				desc += Messages.get(this, "desc_3");
+
+			if(!cursed && level() < levelCap) {
+				desc += "\n\n";
+				desc += Messages.get(this, "damageinfo", 3*(level()*level()));
+			}
+
 		}
 
 		return desc;
