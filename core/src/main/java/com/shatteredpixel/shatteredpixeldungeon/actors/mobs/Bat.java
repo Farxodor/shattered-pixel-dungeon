@@ -47,6 +47,8 @@ public class Bat extends Mob {
 		loot = new PotionOfHealing();
 		lootChance = 0.1667f; //by default, see die()
 	}
+
+	int totalHealing = 0;
 	
 	@Override
 	public int damageRoll() {
@@ -67,11 +69,14 @@ public class Bat extends Mob {
 	public int attackProc( Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 		int reg = Math.min( damage, HT - HP );
-		
+		reg = Math.min(reg, HT - totalHealing);
+
 		if (reg > 0) {
 			HP += reg;
 			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 		}
+
+		this.totalHealing += reg;
 		
 		return damage;
 	}
