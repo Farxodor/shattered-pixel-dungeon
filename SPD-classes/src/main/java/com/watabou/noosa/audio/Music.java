@@ -21,9 +21,11 @@
 
 package com.watabou.noosa.audio;
 
+import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
@@ -70,6 +72,7 @@ public enum Music implements MediaPlayer.OnPreparedListener, MediaPlayer.OnError
 			
 		} catch (Exception e) {
 			
+			Game.reportException(e);
 			player = null;
 			
 		}
@@ -158,4 +161,13 @@ public enum Music implements MediaPlayer.OnPreparedListener, MediaPlayer.OnError
 			super.onCallStateChanged(state, incomingNumber);
 		}
 	};
+	
+	public static void setMuteListener(){
+		//versions lower than this require READ_PHONE_STATE permission
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			TelephonyManager mgr =
+					(TelephonyManager) Game.instance.getSystemService(Activity.TELEPHONY_SERVICE);
+			mgr.listen(Music.callMute, PhoneStateListener.LISTEN_CALL_STATE);
+		}
+	}
 }

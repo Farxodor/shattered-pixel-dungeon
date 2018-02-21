@@ -11,6 +11,12 @@ android {
     }
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        resConfigs "en_US", "cs", "tr", "ca", "ko", "pl", "it",
+                "eo", "ru", "zh_CN", "de", "fr", "es", "pt", "fi", "hu", "in"
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix ".farxodorDebug"
@@ -21,7 +27,6 @@ android {
             shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            debuggable true
             signingConfig signingConfigs.config
         }
     }

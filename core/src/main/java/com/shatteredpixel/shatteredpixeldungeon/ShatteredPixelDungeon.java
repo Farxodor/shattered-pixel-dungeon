@@ -24,23 +24,16 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.WelcomeScene;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.RenderedText;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
-
-import java.util.Locale;
+import com.watabou.utils.DeviceCompat;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -54,9 +47,12 @@ public class ShatteredPixelDungeon extends Game {
 	
 	public static final int v0_6_0b = 185;
 	
-	public static final int v0_6_1  = 205;
+	public static final int v0_6_1b = 209;
 	
-	public static final int v0_6_2  = 222;
+	public static final int v0_6_2e = 229;
+	
+	public static final int v0_6_3  = 241;
+	
 	
 	public ShatteredPixelDungeon() {
 		super( WelcomeScene.class );
@@ -117,13 +113,33 @@ public class ShatteredPixelDungeon extends Game {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlobImmunity.class,
 				"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.GasesImmunity" );
 		
-		com.watabou.utils.Bundle.exceptionReporter =
-				new com.watabou.utils.Bundle.BundleExceptionCallback() {
-					@Override
-					public void call(Throwable t) {
-						ShatteredPixelDungeon.reportException(t);
-					}
-				};
+		//v0.6.3
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Tomahawk.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Tamahawk" );
+		
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Dart" );
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.IncendiaryDart.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.IncendiaryDart" );
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ParalyticDart.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.CurareDart" );
+		
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorrosion.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfVenom" );
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.blobs.VenomGas" );
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion.class,
+				"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Venom" );
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.levels.traps.CorrosionTrap.class,
+				"com.shatteredpixel.shatteredpixeldungeon.levels.traps.VenomTrap" );
 		
 	}
 	
@@ -133,31 +149,14 @@ public class ShatteredPixelDungeon extends Game {
 		super.onCreate(savedInstanceState);
 
 		updateSystemUI();
+		SPDSettings.landscape ( SPDSettings.landscape() );
 		
-		if (Preferences.INSTANCE.contains( Preferences.KEY_LANDSCAPE )){
-			landscape ( Preferences.INSTANCE.getBoolean( Preferences.KEY_LANDSCAPE, false));
-
-		} else {
-			DisplayMetrics metrics = new DisplayMetrics();
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-				getWindowManager().getDefaultDisplay().getRealMetrics( metrics );
-			else
-				getWindowManager().getDefaultDisplay().getMetrics( metrics );
-			boolean landscape = metrics.widthPixels > metrics.heightPixels;
-
-			landscape( landscape );
-		}
+		Music.INSTANCE.enable( SPDSettings.music() );
+		Music.INSTANCE.volume( SPDSettings.musicVol()/10f );
+		Sample.INSTANCE.enable( SPDSettings.soundFx() );
+		Sample.INSTANCE.volume( SPDSettings.SFXVol()/10f );
 		
-		Music.INSTANCE.enable( music() );
-		Music.INSTANCE.volume( musicVol()/10f );
-		Sample.INSTANCE.enable( soundFx() );
-		Sample.INSTANCE.volume( SFXVol()/10f );
-		
-		//versions lower than this require READ_PHONE_STATE permission
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			TelephonyManager mgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-			mgr.listen(Music.callMute, PhoneStateListener.LISTEN_CALL_STATE);
-		}
+		Music.setMuteListener();
 
 		Sample.INSTANCE.load(
 				Assets.SND_CLICK,
@@ -209,11 +208,12 @@ public class ShatteredPixelDungeon extends Game {
 				Assets.SND_DEGRADE,
 				Assets.SND_MIMIC );
 
-		if (classicFont()) {
+		if (!SPDSettings.systemFont()) {
 			RenderedText.setFont("pixelfont.ttf");
 		} else {
 			RenderedText.setFont( null );
 		}
+		
 	}
 
 	@Override
@@ -237,47 +237,6 @@ public class ShatteredPixelDungeon extends Game {
 		switchScene( c, callback );
 	}
 
-	/*
-	 * ---> Prefernces
-	 */
-	
-	public static void landscape( boolean value ) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-			Game.instance.setRequestedOrientation(value ?
-					ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE :
-					ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-		} else {
-			Game.instance.setRequestedOrientation(value ?
-					ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
-					ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		}
-		Preferences.INSTANCE.put( Preferences.KEY_LANDSCAPE, value );
-		((ShatteredPixelDungeon)instance).updateDisplaySize();
-	}
-	
-	public static boolean landscape() {
-		return width > height;
-	}
-	
-	public static void scale( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_SCALE, value );
-	}
-
-	private static boolean immersiveModeChanged = false;
-
-	public static void immerse( boolean value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_IMMERSIVE, value );
-
-		instance.runOnUiThread( new Runnable() {
-			@Override
-			public void run() {
-				updateSystemUI();
-				//ensures surfacechanged is called if the view was previously set to be fixed.
-				((ShatteredPixelDungeon)instance).view.getHolder().setSizeFromLayout();
-			}
-		} );
-	}
-
 	@Override
 	public void onSurfaceChanged( GL10 gl, int width, int height ) {
 
@@ -287,7 +246,21 @@ public class ShatteredPixelDungeon extends Game {
 
 	}
 
-	private void updateDisplaySize(){
+	public void updateDisplaySize(){
+		boolean landscape = SPDSettings.landscape();
+		
+		if (landscape != (width > height)) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+				instance.setRequestedOrientation(landscape ?
+						ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE :
+						ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+			} else {
+				instance.setRequestedOrientation(landscape ?
+						ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
+						ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+			}
+		}
+		
 		if (view.getMeasuredWidth() == 0 || view.getMeasuredHeight() == 0)
 			return;
 
@@ -301,9 +274,9 @@ public class ShatteredPixelDungeon extends Game {
 
 		//force power saver in this case as all devices must run at at least 2x scale.
 		if (dispWidth < renderWidth*2 || dispHeight < renderHeight*2)
-			Preferences.INSTANCE.put( Preferences.KEY_POWER_SAVER, true );
+			SPDSettings.put( SPDSettings.KEY_POWER_SAVER, true );
 
-		if (powerSaver()){
+		if (SPDSettings.powerSaver()){
 
 			int maxZoom = (int)Math.min(dispWidth/renderWidth, dispHeight/renderHeight);
 
@@ -351,8 +324,8 @@ public class ShatteredPixelDungeon extends Game {
 					WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		}
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-			if (fullscreen && immersed()) {
+		if (DeviceCompat.supportsFullScreen()){
+			if (fullscreen && SPDSettings.fullscreen()) {
 				instance.getWindow().getDecorView().setSystemUiVisibility(
 						View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 						View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
@@ -365,172 +338,5 @@ public class ShatteredPixelDungeon extends Game {
 		}
 
 	}
-
-	public static boolean immersed() {
-		return Preferences.INSTANCE.getBoolean( Preferences.KEY_IMMERSIVE, false );
-	}
-
-	public static boolean powerSaver(){
-		return Preferences.INSTANCE.getBoolean( Preferences.KEY_POWER_SAVER, false );
-	}
-
-	public static void powerSaver( boolean value ){
-		Preferences.INSTANCE.put( Preferences.KEY_POWER_SAVER, value );
-		((ShatteredPixelDungeon)instance).updateDisplaySize();
-	}
 	
-	public static int scale() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_SCALE, 0 );
-	}
-
-	public static void zoom( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_ZOOM, value );
-	}
-	
-	public static int zoom() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_ZOOM, 0 );
-	}
-	
-	public static void music( boolean value ) {
-		Music.INSTANCE.enable( value );
-		Preferences.INSTANCE.put( Preferences.KEY_MUSIC, value );
-	}
-	
-	public static boolean music() {
-		return Preferences.INSTANCE.getBoolean( Preferences.KEY_MUSIC, true );
-	}
-
-	public static void musicVol( int value ){
-		Preferences.INSTANCE.put( Preferences.KEY_MUSIC_VOL, value );
-	}
-
-	public static int musicVol(){
-		return Preferences.INSTANCE.getInt( Preferences.KEY_MUSIC_VOL, 10, 0, 10 );
-	}
-	
-	public static void soundFx( boolean value ) {
-		Sample.INSTANCE.enable( value );
-		Preferences.INSTANCE.put( Preferences.KEY_SOUND_FX, value );
-	}
-	
-	public static boolean soundFx() {
-		return Preferences.INSTANCE.getBoolean( Preferences.KEY_SOUND_FX, true );
-	}
-
-	public static void SFXVol( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_SFX_VOL, value );
-	}
-
-	public static int SFXVol() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_SFX_VOL, 10, 0, 10 );
-	}
-	
-	public static void brightness( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_BRIGHTNESS, value );
-		GameScene.updateFog();
-	}
-	
-	public static int brightness() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_BRIGHTNESS, 0, -2, 2 );
-	}
-
-	public static void visualGrid( int value ){
-		Preferences.INSTANCE.put( Preferences.KEY_GRID, value );
-		GameScene.updateMap();
-	}
-
-	public static int visualGrid() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_GRID, 0, -1, 3 );
-	}
-
-	public static void language(Languages lang) {
-		Preferences.INSTANCE.put( Preferences.KEY_LANG, lang.code());
-	}
-
-	public static Languages language() {
-		String code = Preferences.INSTANCE.getString(Preferences.KEY_LANG, null);
-		if (code == null){
-			return Languages.matchLocale(Locale.getDefault());
-		} else {
-			return Languages.matchCode(code);
-		}
-	}
-
-	public static void classicFont(boolean classic){
-		Preferences.INSTANCE.put(Preferences.KEY_CLASSICFONT, classic);
-		if (classic) {
-			RenderedText.setFont("pixelfont.ttf");
-		} else {
-			RenderedText.setFont( null );
-		}
-	}
-
-	public static boolean classicFont(){
-		return Preferences.INSTANCE.getBoolean(Preferences.KEY_CLASSICFONT,
-				(language() != Languages.KOREAN && language() != Languages.CHINESE));
-	}
-
-	public static void lastClass( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_LAST_CLASS, value );
-	}
-	
-	public static int lastClass() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_LAST_CLASS, 0, 0, 3 );
-	}
-
-	public static void challenges( int value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_CHALLENGES, value );
-	}
-
-	public static int challenges() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_CHALLENGES, 0, 0, Challenges.MAX_VALUE );
-	}
-
-	public static void quickSlots( int value ){ Preferences.INSTANCE.put( Preferences.KEY_QUICKSLOTS, value ); }
-
-	public static int quickSlots(){ return Preferences.INSTANCE.getInt( Preferences.KEY_QUICKSLOTS, 4, 0, 4); }
-
-	public static void flipToolbar( boolean value) {
-		Preferences.INSTANCE.put(Preferences.KEY_FLIPTOOLBAR, value );
-	}
-
-	public static boolean flipToolbar(){ return Preferences.INSTANCE.getBoolean(Preferences.KEY_FLIPTOOLBAR, false); }
-
-	public static void flipTags( boolean value) {
-		Preferences.INSTANCE.put(Preferences.KEY_FLIPTAGS, value );
-	}
-
-	public static boolean flipTags(){ return Preferences.INSTANCE.getBoolean(Preferences.KEY_FLIPTAGS, false); }
-
-	public static void toolbarMode( String value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_BARMODE, value );
-	}
-
-	public static String toolbarMode() {
-		return Preferences.INSTANCE.getString(Preferences.KEY_BARMODE, !landscape() ? "SPLIT" : "GROUP");
-	}
-	
-	public static void intro( boolean value ) {
-		Preferences.INSTANCE.put( Preferences.KEY_INTRO, value );
-	}
-	
-	public static boolean intro() {
-		return Preferences.INSTANCE.getBoolean( Preferences.KEY_INTRO, true );
-	}
-
-	public static void version( int value)  {
-		Preferences.INSTANCE.put( Preferences.KEY_VERSION, value );
-	}
-
-	public static int version() {
-		return Preferences.INSTANCE.getInt( Preferences.KEY_VERSION, 0 );
-	}
-	
-	/*
-	 * <--- Preferences
-	 */
-
-	public static void reportException( Throwable tr ) {
-		Log.e("PD", Log.getStackTraceString(tr));
-	}
 }

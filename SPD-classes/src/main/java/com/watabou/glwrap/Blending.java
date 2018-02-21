@@ -19,28 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
+package com.watabou.glwrap;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.VenomGas;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import android.opengl.GLES20;
 
-public class VenomTrap extends Trap {
+import javax.microedition.khronos.opengles.GL10;
 
-	{
-		color = VIOLET;
-		shape = GRILL;
+public class Blending {
+	
+	public static void useDefault(){
+		enable();
+		setNormalMode();
 	}
-
-	@Override
-	public void activate() {
-
-		VenomGas venomGas = Blob.seed(pos, 80 + 5 * Dungeon.depth, VenomGas.class);
-
-		venomGas.setStrength(1+Dungeon.depth/4);
-
-		GameScene.add(venomGas);
-
+	
+	public static void enable(){
+		GLES20.glEnable( GL10.GL_BLEND );
 	}
+	
+	public static void disable(){
+		GLES20.glDisable( GL10.GL_BLEND );
+	}
+	
+	//in this mode colors overwrite eachother, based on alpha value
+	public static void setNormalMode(){
+		GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
+	}
+	
+	//in this mode colors add to eachother, eventually reaching pure white
+	public static void setLightMode(){
+		GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE );
+	}
+	
 }

@@ -21,7 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.messages;
 
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.watabou.utils.DeviceCompat;
 
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -72,7 +74,7 @@ public class Messages {
 	};
 
 	static{
-		setup(ShatteredPixelDungeon.language());
+		setup(SPDSettings.language());
 	}
 
 	public static void setup( Languages lang ){
@@ -86,9 +88,8 @@ public class Messages {
 			while (keys.hasMoreElements()) {
 				String key = keys.nextElement();
 				String value = bundle.getString(key);
-
-				//android 2.2 doesn't use UTF-8 by default, need to force it.
-				if (android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.FROYO) {
+				
+				if (DeviceCompat.usesISO_8859_1()) {
 					try {
 						value = new String(value.getBytes("ISO-8859-1"), "UTF-8");
 					} catch (Exception e) {

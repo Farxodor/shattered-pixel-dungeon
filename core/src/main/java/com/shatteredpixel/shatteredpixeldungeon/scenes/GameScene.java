@@ -21,11 +21,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
-import android.opengl.GLES20;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -94,6 +93,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndStory;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTradeItem;
+import com.watabou.glwrap.Blending;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
@@ -105,7 +105,6 @@ import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.GameMath;
-import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.io.IOException;
@@ -163,10 +162,10 @@ public class GameScene extends PixelScene {
 		
 		Music.INSTANCE.play( Assets.TUNE, true );
 
-		ShatteredPixelDungeon.lastClass(Dungeon.hero.heroClass.ordinal());
+		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
 		
 		super.create();
-		Camera.main.zoom( GameMath.gate(minZoom, defaultZoom + ShatteredPixelDungeon.zoom(), maxZoom));
+		Camera.main.zoom( GameMath.gate(minZoom, defaultZoom + SPDSettings.zoom(), maxZoom));
 
 		scene = this;
 
@@ -186,9 +185,9 @@ public class GameScene extends PixelScene {
 			@Override
 			public void draw() {
 				//water has no alpha component, this improves performance
-				GLES20.glBlendFunc( GLES20.GL_ONE, GLES20.GL_ZERO );
+				Blending.disable();
 				super.draw();
-				GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
+				Blending.enable();
 			}
 		};
 		terrain.add( water );
@@ -530,9 +529,9 @@ public class GameScene extends PixelScene {
 
 		if (scene == null) return;
 
-		float tagLeft = ShatteredPixelDungeon.flipTags() ? 0 : uiCamera.width - scene.attack.width();
+		float tagLeft = SPDSettings.flipTags() ? 0 : uiCamera.width - scene.attack.width();
 
-		if (ShatteredPixelDungeon.flipTags()) {
+		if (SPDSettings.flipTags()) {
 			scene.log.setRect(scene.attack.width(), scene.toolbar.top(), uiCamera.width - scene.attack.width(), 0);
 		} else {
 			scene.log.setRect(0, scene.toolbar.top(), uiCamera.width - scene.attack.width(),  0 );
@@ -777,7 +776,8 @@ public class GameScene extends PixelScene {
 			scene.visualGrid.updateMapCell( cell );
 			scene.terrainFeatures.updateMapCell( cell );
 			scene.walls.updateMapCell( cell );
-			updateFog( cell );
+			//update adjacent cells too
+			updateFog( cell, 1 );
 		}
 	}
 
@@ -787,6 +787,7 @@ public class GameScene extends PixelScene {
 		}
 	}
 	
+	//todo this doesn't account for walls right now
 	public static void discoverTile( int pos, int oldValue ) {
 		if (scene != null) {
 			scene.tiles.discover( pos, oldValue );
@@ -813,21 +814,11 @@ public class GameScene extends PixelScene {
 			scene.wallBlocking.updateArea(x, y, w, h);
 		}
 	}
-
-	public static void updateFog( int cell ){
+	
+	public static void updateFog( int cell, int radius ){
 		if (scene != null) {
-			//update in a 3x3 grid to account for neighbours which might also be affected
-			if (Dungeon.level.insideMap(cell)) {
-				for (int i : PathFinder.NEIGHBOURS9) {
-					scene.fog.updateFogCell( cell + i );
-					scene.wallBlocking.updateMapCell( cell + i );
-				}
-
-			//unless we're at the level's edge, then just do the one tile.
-			} else {
-				scene.fog.updateFogCell( cell );
-				scene.wallBlocking.updateMapCell( cell );
-			}
+			scene.fog.updateFog( cell, radius );
+			scene.wallBlocking.updateArea( cell, radius );
 		}
 	}
 	

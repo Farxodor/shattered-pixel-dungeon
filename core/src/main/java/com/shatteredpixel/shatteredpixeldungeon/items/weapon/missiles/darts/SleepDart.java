@@ -19,52 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
+package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts;
 
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.utils.Random;
 
-public class Dart extends MissileWeapon {
-
+public class SleepDart extends TippedDart {
+	
 	{
-		image = ItemSpriteSheet.DART;
-
-		bones = false; //Finding them in bones would be semi-frequent and disappointing.
-	}
-
-	@Override
-	public int min(int lvl) {
-		return 1;
-	}
-
-	@Override
-	public int max(int lvl) {
-		return 4;
-	}
-
-	@Override
-	public int STRReq(int lvl) {
-		return 10;
-	}
-
-	public Dart() {
-		this( 1 );
-	}
-	
-	public Dart( int number ) {
-		super();
-		quantity = number;
+		image = ItemSpriteSheet.SLEEP_DART;
 	}
 	
 	@Override
-	public Item random() {
-		quantity = Random.Int( 5, 15 );
-		return this;
-	}
-	
-	@Override
-	public int price() {
-		return quantity * 2;
+	public int proc(Char attacker, final Char defender, int damage) {
+		
+		//need to delay this so damage from the dart doesn't break the sleep
+		new FlavourBuff(){
+			{actPriority = VFX_PRIO;}
+			public boolean act() {
+				Buff.affect( defender, Sleep.class );
+				return super.act();
+			}
+		}.attachTo(defender);
+		
+		return super.proc(attacker, defender, damage);
 	}
 }

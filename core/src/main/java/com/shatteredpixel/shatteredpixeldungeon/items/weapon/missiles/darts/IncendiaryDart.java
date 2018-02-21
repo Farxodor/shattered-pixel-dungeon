@@ -19,61 +19,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
+package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.utils.Random;
 
-public class CurareDart extends MissileWeapon {
+public class IncendiaryDart extends TippedDart {
 
-	public static final float DURATION	= 3f;
-	
 	{
-		image = ItemSpriteSheet.CURARE_DART;
-	}
-
-	@Override
-	public int min(int lvl) {
-		return 1;
-	}
-
-	@Override
-	public int max(int lvl) {
-		return 3;
-	}
-
-	@Override
-	public int STRReq(int lvl) {
-		return 14;
-	}
-
-	public CurareDart() {
-		this( 1 );
+		image = ItemSpriteSheet.INCENDIARY_DART;
 	}
 	
-	public CurareDart( int number ) {
-		super();
-		quantity = number;
+	@Override
+	protected void onThrow( int cell ) {
+		Char enemy = Actor.findChar( cell );
+		if ((enemy == null || enemy == curUser) && Dungeon.level.flamable[cell]) {
+			GameScene.add(Blob.seed(cell, 4, Fire.class));
+			Dungeon.level.drop(new Dart(), cell).sprite.drop();
+		} else{
+			super.onThrow(cell);
+		}
 	}
 	
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
-		Buff.prolong( defender, Paralysis.class, DURATION );
+		Buff.affect( defender, Burning.class ).reignite( defender );
 		return super.proc( attacker, defender, damage );
 	}
 	
-	@Override
-	public Item random() {
-		quantity = Random.Int( 2, 5 );
-		return this;
-	}
-	
-	@Override
-	public int price() {
-		return 8 * quantity;
-	}
 }

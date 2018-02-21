@@ -32,6 +32,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -39,6 +40,7 @@ import android.view.View;
 
 import com.watabou.glscripts.Script;
 import com.watabou.gltextures.TextureCache;
+import com.watabou.glwrap.Blending;
 import com.watabou.glwrap.ScreenConfigChooser;
 import com.watabou.glwrap.Vertexbuffer;
 import com.watabou.input.Keys;
@@ -46,6 +48,7 @@ import com.watabou.input.Touchscreen;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BitmapCache;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.SystemTime;
 
 import java.util.ArrayList;
@@ -112,7 +115,10 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		BitmapCache.context = TextureCache.context = instance = this;
 		
 		DisplayMetrics m = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics( m );
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+			getWindowManager().getDefaultDisplay().getRealMetrics( m );
+		else
+			getWindowManager().getDefaultDisplay().getMetrics( m );
 		density = m.density;
 		dispHeight = m.heightPixels;
 		dispWidth = m.widthPixels;
@@ -133,10 +139,10 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		view = new GLSurfaceView( this );
 		view.setEGLContextClientVersion( 2 );
 
-		//Versions of android below 4.1 are forced to RGB 565 for performance reasons.
+		//Older devices are forced to RGB 565 for performance reasons.
 		//Otherwise try to use RGB888 for best quality, but use RGB565 if it is what's available.
 		view.setEGLConfigChooser( new ScreenConfigChooser(
-						Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN,
+				DeviceCompat.legacyDevice(),
 						false ));
 
 		view.setRenderer( this );
@@ -274,18 +280,20 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 			return;
 		}
 		
+		NoosaScript.get().resetCamera();
+		NoosaScriptNoLighting.get().resetCamera();
+		GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		draw();
+		
+		GLES20.glFlush();
+		
 		SystemTime.tick();
 		long rightNow = SystemClock.elapsedRealtime();
 		step = (now == 0 ? 0 : rightNow - now);
 		now = rightNow;
 		
 		step();
-
-		NoosaScript.get().resetCamera();
-		NoosaScriptNoLighting.get().resetCamera();
-		GLES20.glDisable( GLES20.GL_SCISSOR_TEST );
-		GLES20.glClear( GLES20.GL_COLOR_BUFFER_BIT );
-		draw();
 	}
 
 	@Override
@@ -304,8 +312,7 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 
 	@Override
 	public void onSurfaceCreated( GL10 gl, EGLConfig config ) {
-		GLES20.glEnable( GL10.GL_BLEND );
-		GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
+		Blending.useDefault();
 
 		//refreshes texture and vertex data stored on the gpu
 		TextureCache.reload();
@@ -360,7 +367,7 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 	}
 	
 	protected void draw() {
-		scene.draw();
+		if (scene != null) scene.draw();
 	}
 	
 	protected void switchScene() {
@@ -396,6 +403,14 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		
 		scene.update();
 		Camera.updateAll();
+	}
+	
+	public static void reportException( Throwable tr ) {
+		if (instance != null) instance.logException(tr);
+	}
+	
+	protected void logException( Throwable tr ){
+		Log.e("GAME", Log.getStackTraceString(tr));
 	}
 	
 	public static void vibrate( int milliseconds ) {

@@ -21,71 +21,46 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.utils.Random;
 
-public class IncendiaryDart extends MissileWeapon {
-
+public class Bolas extends MissileWeapon {
+	
 	{
-		image = ItemSpriteSheet.INCENDIARY_DART;
+		image = ItemSpriteSheet.BOLAS;
+		
 	}
-
+	
 	@Override
 	public int min(int lvl) {
-		return 1;
+		return 4;
 	}
-
+	
 	@Override
 	public int max(int lvl) {
-		return 2;
+		return 6;
 	}
-
+	
 	@Override
 	public int STRReq(int lvl) {
-		return 12;
-	}
-
-	public IncendiaryDart() {
-		this( 1 );
-	}
-	
-	public IncendiaryDart( int number ) {
-		super();
-		quantity = number;
-	}
-	
-	@Override
-	protected void onThrow( int cell ) {
-		Char enemy = Actor.findChar( cell );
-		if ((enemy == null || enemy == curUser) && Dungeon.level.flamable[cell])
-			GameScene.add( Blob.seed( cell, 4, Fire.class ) );
-		else
-			super.onThrow( cell );
+		return 15;
 	}
 	
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
-		Buff.affect( defender, Burning.class ).reignite( defender );
+		Buff.prolong( defender, Cripple.class, Cripple.DURATION );
 		return super.proc( attacker, defender, damage );
 	}
 	
 	@Override
-	public Item random() {
-		quantity = Random.Int( 3, 6 );
-		return this;
+	protected float durabilityPerUse() {
+		return super.durabilityPerUse()*2f;
 	}
 	
 	@Override
 	public int price() {
-		return 5 * quantity;
+		return 18 * quantity;
 	}
 }
